@@ -1,12 +1,12 @@
 "use client";
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { GraduationCap, Star, Users, ChevronRight, Loader, Search, Filter } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6001';
 
-export default function PublicMentorsPage() {
+function PublicMentorsContent() {
   const searchParams = useSearchParams();
   const page = parseInt(searchParams.get('page')) || 1;
 
@@ -176,5 +176,13 @@ export default function PublicMentorsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function PublicMentorsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#070b14] flex items-center justify-center text-white"><Loader className="animate-spin text-blue-500" size={32} /></div>}>
+      <PublicMentorsContent />
+    </Suspense>
   );
 }

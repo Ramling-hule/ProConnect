@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Trophy, Calendar, Users, Globe, Wifi, Cpu, ChevronRight, Loader, Plus } from 'lucide-react';
@@ -18,7 +18,7 @@ const statusColor = (status) => {
   return 'bg-slate-100 text-slate-600';
 };
 
-export default function PublicHackathonsPage() {
+function PublicHackathonsContent() {
   const searchParams = useSearchParams();
   const page = parseInt(searchParams.get('page')) || 1;
 
@@ -124,5 +124,13 @@ export default function PublicHackathonsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function PublicHackathonsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#070b14] flex items-center justify-center text-white"><Loader className="animate-spin text-blue-500" size={32} /></div>}>
+      <PublicHackathonsContent />
+    </Suspense>
   );
 }

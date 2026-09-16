@@ -214,7 +214,7 @@ export default function MentorDashboardPage() {
                   {todaysBookings.map(b => (
                     <div key={b._id} className="flex flex-col md:flex-row md:items-center justify-between bg-white/5 hover:bg-white/10 p-5 rounded-2xl border border-white/10 transition-colors gap-4">
                       <div className="flex items-center gap-4">
-                        <img src={b.user?.profilePicture || 'https:
+                        <img src={b.user?.profilePicture || 'https://api.dicebear.com/7.x/notionists/svg?seed='+b.user?.name} className="w-12 h-12 rounded-full bg-slate-800 object-cover" alt="User" />
                         <div>
                           <p className="font-bold text-lg text-white">{b.user?.name}</p>
                           <p className="text-sm font-medium text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-md inline-flex mt-1">{b.service?.title} • {b.startTime}</p>
