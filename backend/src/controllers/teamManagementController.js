@@ -20,7 +20,7 @@ export const getLeaderRequests = asyncHandler(async (req, res) => {
 });
 
 export const acceptInterestRequest = asyncHandler(async (req, res) => {
-  const { id, requestId } = req.params; // id is teamId, requestId is InterestRequest _id
+  const { id, requestId } = req.params;
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -28,36 +28,34 @@ export const acceptInterestRequest = asyncHandler(async (req, res) => {
     const interest = await InterestRequest.findById(requestId).session(session);
     if (!interest) throw new AppError('Request not found', 404);
     if (interest.status !== 'pending') throw new AppError('Request already processed', 400);
-
-    const team = await HackathonTeam.findById(id).session(session);
-    if (!team) throw new AppError('Team not found', 404);
-    if (team.captain.toString() !== req.user._id.toString()) throw new AppError('Only the captain can accept requests', 403);
-
-    // Check team size
-    if (team.members.length >= team.maxMembers) {
-      throw new AppError('Team is already full', 400);
-    }
-
-    // Check if user is already in another team for this hackathon
-    const existingTeam = await HackathonTeam.findOne({ hackathon: team.hackathon, 'members.user': interest.user }).session(session);
+    const existingTeam = await HackathonTeam.findOne({ hackathon: interest.hackathon, 'members.user': interest.user }).session(session);
     if (existingTeam) throw new AppError('User is already in a team for this hackathon', 400);
 
-    // Accept interest
+    const team = await HackathonTeam.findOneAndUpdate(
+      {
+        _id: id,
+        captain: req.user._id,
+        $expr: { $lt: [{ $size: "$members" }, "$maxMembers"] }
+      },
+      {
+        $push: { members: { user: interest.user, role: 'Member', joinedAt: new Date() } }
+      },
+      { session, new: true }
+    );
+
+    if (!team) {
+      const checkTeam = await HackathonTeam.findById(id).session(session);
+      if (!checkTeam) throw new AppError('Team not found', 404);
+      if (checkTeam.captain.toString() !== req.user._id.toString()) throw new AppError('Only the captain can accept requests', 403);
+      throw new AppError('Team is already full', 400);
+    }
     interest.status = 'accepted';
     await interest.save({ session });
-
-    // Add user to team
-    team.members.push({ user: interest.user, role: 'Member', joinedAt: new Date() });
-    await team.save({ session });
-
-    // Reject all other pending requests from this user for this hackathon
     await InterestRequest.updateMany(
       { hackathon: team.hackathon, user: interest.user, status: 'pending', _id: { $ne: interest._id } },
       { $set: { status: 'rejected' } },
       { session }
     );
-
-    // Create mutually connected connection (if not already connected)
     const existingConnection = await Connection.findOne({
       $or: [
         { requester: req.user._id, recipient: interest.user },
@@ -75,8 +73,6 @@ export const acceptInterestRequest = asyncHandler(async (req, res) => {
       existingConnection.status = 'accepted';
       await existingConnection.save({ session });
     }
-
-    // Notify accepted user
     await Notification.create([{
       recipient: interest.user,
       sender: req.user._id,
@@ -112,8 +108,6 @@ export const rejectInterestRequest = asyncHandler(async (req, res) => {
 
   interest.status = 'rejected';
   await interest.save();
-
-  // Notify rejected user
   await Notification.create({
     recipient: interest.user,
     sender: req.user._id,
@@ -158,4 +152,61 @@ export const transferLeadership = asyncHandler(async (req, res) => {
   }
 
   res.json({ success: true, message: 'Leadership transferred successfully' });
+});
+
+export const getTeamDetails = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const team = await HackathonTeam.findById(id)
+    .populate('members.user', 'name username profilePicture headline skills')
+    .populate('captain', 'name username profilePicture')
+    .populate('hackathon', 'title slug logo');
+
+  if (!team) {
+    throw new AppError('Team not found', 404);
+  }
+  const isMember = team.members.some(m => m.user._id.toString() === req.user._id.toString());
+  if (!isMember) {
+    throw new AppError('Not authorized to view this team', 403);
+  }
+
+  res.json({ success: true, team });
+});
+
+export const removeTeammate = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { memberId, reason } = req.body;
+
+  if (!reason || reason.trim() === '') {
+    throw new AppError('Reason is required for removing a teammate', 400);
+  }
+
+  const team = await HackathonTeam.findById(id);
+  if (!team) throw new AppError('Team not found', 404);
+  if (team.captain.toString() !== req.user._id.toString()) {
+    throw new AppError('Only the captain can remove members', 403);
+  }
+  if (memberId === req.user._id.toString()) {
+    throw new AppError('You cannot remove yourself. Transfer leadership first.', 400);
+  }
+
+  const memberExists = team.members.find(m => m.user.toString() === memberId);
+  if (!memberExists) {
+    throw new AppError('User is not a member of this team', 404);
+  }
+  team.members = team.members.filter(m => m.user.toString() !== memberId);
+  await team.save();
+  await Notification.create({
+    recipient: memberId,
+    sender: req.user._id,
+    type: 'TEAMMATE_REMOVED',
+    message: `removed you from team ${team.name}. Reason: ${reason}`,
+    link: `/hackathons/${team.hackathon}/find-teammates`,
+    relatedId: team.hackathon
+  });
+
+  if (req.app.get('io')) {
+    req.app.get('io').to(memberId).emit('new_notification', { type: 'TEAMMATE_REMOVED' });
+  }
+
+  res.json({ success: true, message: 'Member removed successfully' });
 });

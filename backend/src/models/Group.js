@@ -5,7 +5,7 @@ const groupSchema = new mongoose.Schema({
   description: { type: String },
   admins: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  joinRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], //
+  joinRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   privacy: { type: String, enum: ['public', 'private'], default: 'public' },
   memberLimit: { type: Number, default: 50 },
   institute: { type: String }, 

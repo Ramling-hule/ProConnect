@@ -5,7 +5,10 @@ import app from './app.js';
 import { env } from './config/env.js';
 import { registerSocketHandlers } from './socket/index.js';
 import logger from './utils/logger.js';
+import { startCron as startPaymentReconciliation } from './cron/paymentReconciliation.js';
+
 connectDB();
+startPaymentReconciliation();
 
 const server = http.createServer(app);
 const io = new Server(server, {

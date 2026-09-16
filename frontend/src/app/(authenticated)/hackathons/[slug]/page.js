@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { notFound, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Trophy, Calendar, Users, Wifi, Globe, Clock, Cpu, Loader } from 'lucide-react';
+import { Trophy, Calendar, Users, Wifi, Globe, Clock, Cpu, Loader, LayoutDashboard } from 'lucide-react';
 import { RegisterHackathonButton } from '@/Components/AuthActionButtons';
 import HackathonScrollNav from './HackathonScrollNav';
 
@@ -141,7 +141,16 @@ export default function PublicHackathonDetailPage() {
                 {h.isFree ? <span className="text-green-600">Free</span> : `₹${h.registrationFee}`}
               </p>
               <RegisterHackathonButton hackathonId={h.id || h._id} slug={slug} soloAllowed={h.soloAllowed} />
-              <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+              
+              <Link href={`/hackathons/${slug}/find-teammates`} className="mt-3 w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-900 dark:text-white px-4 py-2.5 rounded-xl font-bold transition-colors">
+                <Users size={18} /> Find Teammates
+              </Link>
+
+              <Link href={`/hackathons/${slug}/dashboard`} className="mt-3 w-full flex items-center justify-center gap-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/40 dark:hover:bg-blue-800/60 text-blue-700 dark:text-blue-300 px-4 py-2.5 rounded-xl font-bold transition-colors">
+                <LayoutDashboard size={18} /> Dashboard
+              </Link>
+
+              <div className="space-y-2 mt-4 text-sm text-slate-600 dark:text-slate-400">
                 {regClose  && <div className="flex items-center gap-2"><Calendar size={14} /> Reg. closes: {regClose.toLocaleDateString()}</div>}
                 {hackStart && <div className="flex items-center gap-2"><Clock size={14} /> Starts: {hackStart.toLocaleDateString()}</div>}
                 {hackEnd   && <div className="flex items-center gap-2"><Clock size={14} /> Ends: {hackEnd.toLocaleDateString()}</div>}

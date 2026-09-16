@@ -67,8 +67,8 @@ export default function CopilotPanel({ isOpen, onClose }) {
     if (!SR) return;
 
     const rec = new SR();
-    rec.continuous     = false;  // use non-continuous; we manually restart on silence
-    rec.interimResults = false;  // only fire onresult for final, complete sentences
+    rec.continuous     = false;
+    rec.interimResults = false;
     rec.lang           = "en-US";
 
     rec.onstart  = () => {
@@ -77,7 +77,7 @@ export default function CopilotPanel({ isOpen, onClose }) {
     };
     rec.onend = () => {
       if (isListeningRef.current) {
-        try { rec.start(); } catch (e) { /* ignore */ }
+        try { rec.start(); } catch (e) { }
       } else {
         setIsListening(false);
       }
@@ -105,7 +105,7 @@ export default function CopilotPanel({ isOpen, onClose }) {
     };
 
     recognitionRef.current = rec;
-  }, []); // ← only once
+  }, []);
   const speakText = (text) => {
     if (!voiceEnabled || typeof window === "undefined" || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();

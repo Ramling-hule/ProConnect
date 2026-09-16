@@ -19,7 +19,7 @@ const progressSchema = new mongoose.Schema({
   },
   metrics: {
     assignmentsCompleted: { type: Number, default: 0 },
-    attendanceRate: { type: Number, default: 0 }, // percentage
+    attendanceRate: { type: Number, default: 0 },
     quizScoresAvg: { type: Number, default: 0 },
     peerReviewAvg: { type: Number, default: 0 },
     activityScore: { type: Number, default: 0 },
@@ -40,6 +40,6 @@ const progressSchema = new mongoose.Schema({
 });
 
 progressSchema.index({ userId: 1, podId: 1 }, { unique: true });
-progressSchema.index({ 'metrics.consistencyStreak': -1 }); // For leaderboard
+progressSchema.index({ 'metrics.consistencyStreak': -1 });
 
 export default mongoose.model('Progress', progressSchema);

@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   isOpen: false,
-  activeChatUser: null, // The user object we are chatting with
+  activeChatUser: null,
 };
 
 const chatSlice = createSlice({
@@ -11,7 +11,7 @@ const chatSlice = createSlice({
   reducers: {
     openChat: (state, action) => {
       state.isOpen = true;
-      state.activeChatUser = action.payload; // Pass the target user object
+      state.activeChatUser = action.payload;
     },
     closeChat: (state) => {
       state.isOpen = false;

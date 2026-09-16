@@ -39,16 +39,17 @@ const authSlice = createSlice({
       state.tempMfaToken = null;
       state.tempUserId = null;
       const { accessToken, user: apiUser } = action.payload;
-      const { _id, name, username, email, institute, profilePicture } = apiUser || {};
+      const { _id, name, username, email, institute, profilePicture, role } = apiUser || {};
       const userData = {
         _id: _id,
-        id: _id,            // Map _id to id for easier frontend use
+        id: _id,
         name: name,
         username: username,
         email: email,
         token: accessToken,
         institute: institute,
         profilePicture: profilePicture || '',
+        role: role || 'student',
       };
       state.user = userData;
       state.token = accessToken;

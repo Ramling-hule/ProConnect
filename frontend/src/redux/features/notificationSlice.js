@@ -12,7 +12,7 @@ const notificationSlice = createSlice({
       state.unreadCount = action.payload.filter(n => !n.isRead).length;
     },
     addNotification: (state, action) => {
-      state.items.unshift(action.payload); // Add to top
+      state.items.unshift(action.payload);
       state.unreadCount += 1;
     },
     markAllRead: (state) => {

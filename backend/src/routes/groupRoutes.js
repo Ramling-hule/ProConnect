@@ -17,7 +17,7 @@ import {
 const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
-router.post('/', protect, upload.single('image'), createGroup); // Create Group with Icon
+router.post('/', protect, upload.single('image'), createGroup);
 router.get('/', protect, getGroups);
 router.post('/join', protect, requestToJoinGroup);
 router.post('/request-join', protect, requestToJoinGroup);

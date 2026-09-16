@@ -181,7 +181,7 @@ const styles = {
   },
   header: {
     padding: "15px",
-    backgroundColor: "blue", // Streamlit Red
+    backgroundColor: "blue",
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
@@ -208,7 +208,7 @@ const styles = {
     color: "black",
     padding: "10px 15px",
     borderRadius: "15px 15px 15px 0",
-    maxWidth: "85%", // Slightly wider for code blocks
+    maxWidth: "85%",
     lineHeight: "1.6",
   },
   inlineCode: {

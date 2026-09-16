@@ -27,6 +27,10 @@ const podSchema = new mongoose.Schema({
     default: 'FORMING',
     index: true
   },
+  activeMemberCount: {
+    type: Number,
+    default: 0
+  },
   minSize: {
     type: Number,
     default: 3
@@ -51,6 +55,14 @@ const podSchema = new mongoose.Schema({
   aiGenerated: {
     type: Boolean,
     default: false
+  },
+  lateJoinAllowed: {
+    type: Boolean,
+    default: false
+  },
+  groupId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Group'
   },
   startedAt: Date,
   completedAt: Date

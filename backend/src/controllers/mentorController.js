@@ -21,7 +21,7 @@ export const updateMentorProfile = asyncHandler(async (req, res, next) => {
 });
 
 export const addService = asyncHandler(async (req, res, next) => {
-  const service = await MentorBusinessService.addService(req.user._id, req.body);
+  const service = await MentorBusinessService.createService(req.user._id, req.body);
   res.status(201).json({ message: 'Service added successfully', service });
 });
 
@@ -45,7 +45,7 @@ export const getMentorServices = asyncHandler(async (req, res, next) => {
 });
 
 export const setAvailability = asyncHandler(async (req, res, next) => {
-  const availability = await MentorBusinessService.setAvailability(req.user._id, req.body);
+  const availability = await MentorBusinessService.updateAvailability(req.user._id, req.body);
   res.json({ message: 'Availability updated successfully', availability });
 });
 

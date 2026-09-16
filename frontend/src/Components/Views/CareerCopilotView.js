@@ -27,79 +27,10 @@ export default function CareerCopilotView() {
   const recognitionRef = useRef(null);
   const chatEndRef = useRef(null);
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      const loadVoices = () => {
-        const availableVoices = window.speechSynthesis.getVoices();
-        setVoices(availableVoices);
-        if (availableVoices.length > 0) {
-          const defaultVoice = availableVoices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) || availableVoices[0];
-          setSelectedVoice(defaultVoice.name);
-        }
-      };
-
-      loadVoices();
-      window.speechSynthesis.onvoiceschanged = loadVoices;
-    }
-  }, []);
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        const rec = new SpeechRecognition();
-        rec.continuous = false;
-        rec.interimResults = false;
-        rec.lang = 'en-US';
-
-        rec.onstart = () => {
-          setIsListening(true);
-          toast.success("Voice recognition started. Speak now...");
-        };
-
-        rec.onend = () => {
-          setIsListening(false);
-        };
-
-        rec.onerror = (e) => {
-          console.error("Speech Recognition Error:", e);
-          setIsListening(false);
-          toast.error("Speech recognition error: " + e.error);
-        };
-
-        rec.onresult = (event) => {
-          const transcript = event.results[0][0].transcript;
-          setQuery(transcript);
-          handleSendQuery(transcript);
-        };
-
-        recognitionRef.current = rec;
-      }
-    }
-  }, [selectedVoice, voiceEnabled, voiceRate, handleSendQuery]);
-
-  const toggleListening = () => {
-    if (!recognitionRef.current) {
-      toast.error("Speech Recognition is not supported in this browser. Please use Chrome or Edge.");
-      return;
-    }
-
-    if (isListening) {
-      recognitionRef.current.stop();
-    } else {
-      if (typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.cancel(); // Stop any reading
-        setIsSpeaking(false);
-      }
-      recognitionRef.current.start();
-    }
-  };
   const speakText = (text) => {
     if (!voiceEnabled || typeof window === 'undefined' || !window.speechSynthesis) return;
 
-    window.speechSynthesis.cancel(); // Cancel active speech
+    window.speechSynthesis.cancel();
     const cleanText = text.replace(/[*#`_\-]/g, '').trim();
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
@@ -185,6 +116,76 @@ export default function CareerCopilotView() {
       console.error(err);
     } finally {
       setLoadingRoadmap(false);
+    }
+  };
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      const loadVoices = () => {
+        const availableVoices = window.speechSynthesis.getVoices();
+        setVoices(availableVoices);
+        if (availableVoices.length > 0) {
+          const defaultVoice = availableVoices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) || availableVoices[0];
+          setSelectedVoice(defaultVoice.name);
+        }
+      };
+
+      loadVoices();
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, []);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const rec = new SpeechRecognition();
+        rec.continuous = false;
+        rec.interimResults = false;
+        rec.lang = 'en-US';
+
+        rec.onstart = () => {
+          setIsListening(true);
+          toast.success("Voice recognition started. Speak now...");
+        };
+
+        rec.onend = () => {
+          setIsListening(false);
+        };
+
+        rec.onerror = (e) => {
+          console.error("Speech Recognition Error:", e);
+          setIsListening(false);
+          toast.error("Speech recognition error: " + e.error);
+        };
+
+        rec.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          setQuery(transcript);
+          handleSendQuery(transcript);
+        };
+
+        recognitionRef.current = rec;
+      }
+    }
+  }, [selectedVoice, voiceEnabled, voiceRate, handleSendQuery]);
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      toast.error("Speech Recognition is not supported in this browser. Please use Chrome or Edge.");
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel(); // Stop any reading
+        setIsSpeaking(false);
+      }
+      recognitionRef.current.start();
     }
   };
 

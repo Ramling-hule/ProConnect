@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import io from "socket.io-client";
-import EmojiPicker from "emoji-picker-react"; 
+import EmojiPicker from "emoji-picker-react";
 import {
   Send, Paperclip, ArrowLeft, FileText, Check, X, Copy, Users, UserPlus,
   Download, Image as ImageIcon, File as FileIcon, Loader2,
@@ -23,12 +23,14 @@ export default function GroupChatWindow({ group: initialGroup, user, onBack }) {
   const [isUploading, setIsUploading] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [joinRequests, setJoinRequests] = useState([]);
+  const [joinRequests, setJoinRequests] = useState([]);
+
   const [activeSidePanel, setActiveSidePanel] = useState(null);
   const [mediaFiles, setMediaFiles] = useState({ images: [], docs: [], links: [] });
   const [mediaTab, setMediaTab] = useState("images");
 
-  const messagesEndRef = useRef(null);
+  const messagesEndRef = useRef(null);
+
   const isAdmin = useMemo(() => {
     if (!group?.admins || !user) return false;
     const myId = user.id || user._id;
@@ -36,7 +38,8 @@ export default function GroupChatWindow({ group: initialGroup, user, onBack }) {
       const adminId = typeof admin === "object" ? admin._id : admin;
       return adminId?.toString() === myId?.toString();
     });
-  }, [group.admins, user]);
+  }, [group.admins, user]);
+
   useEffect(() => { setGroup(initialGroup); }, [initialGroup]);
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
@@ -56,13 +59,13 @@ export default function GroupChatWindow({ group: initialGroup, user, onBack }) {
     };
 
     const fetchGroupDetails = async () => {
-        try {
-            const res = await fetch(`${API_BASE_URL}/api/groups/${group._id}`, {
-                headers: { Authorization: `Bearer ${user.token}` },
-            });
-            const data = await res.json();
-            if(data._id) setGroup(prev => ({ ...prev, ...data }));
-        } catch (e) { console.error(e); }
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/groups/${group._id}`, {
+          headers: { Authorization: `Bearer ${user.token}` },
+        });
+        const data = await res.json();
+        if (data._id) setGroup(prev => ({ ...prev, ...data }));
+      } catch (e) { console.error(e); }
     };
 
     fetchMessages();
@@ -78,7 +81,8 @@ export default function GroupChatWindow({ group: initialGroup, user, onBack }) {
     });
 
     return () => socket.disconnect();
-  }, [group._id, user.token]);
+  }, [group._id, user.token]);
+
   const extractLinks = (msgs) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     const foundLinks = [];
@@ -130,8 +134,8 @@ export default function GroupChatWindow({ group: initialGroup, user, onBack }) {
   };
 
   const removeMember = async (memberId) => {
-    if(!confirm("Remove this user?")) return;
-    setGroup(prev => ({...prev, members: prev.members.filter(m => (typeof m === 'object' ? m._id : m) !== memberId)}));
+    if (!confirm("Remove this user?")) return;
+    setGroup(prev => ({ ...prev, members: prev.members.filter(m => (typeof m === 'object' ? m._id : m) !== memberId) }));
     toast.success("Member removed");
   };
 
@@ -157,38 +161,39 @@ export default function GroupChatWindow({ group: initialGroup, user, onBack }) {
         senderId: user.id || user._id, groupId: group._id, text, fileUrl, fileType, fileName,
       });
       setText(""); setFile(null);
-    } catch (e) { toast.error("Error sending message"); } 
+    } catch (e) { toast.error("Error sending message"); }
     finally { setIsUploading(false); }
   };
 
   const fetchRequests = useCallback(async () => {
     try {
-        const res = await fetch(`${API_BASE_URL}/api/groups/${group._id}/requests`, {
-            headers: { Authorization: `Bearer ${user.token}` }
-        });
-        const data = await res.json();
-        setJoinRequests(data);
+      const res = await fetch(`${API_BASE_URL}/api/groups/${group._id}/requests`, {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      const data = await res.json();
+      setJoinRequests(data);
     } catch (error) { console.error("Failed to fetch requests", error); }
   }, [group._id, user.token]);
 
   useEffect(() => { if (showInviteModal && isAdmin) fetchRequests(); }, [showInviteModal, isAdmin, fetchRequests]);
 
   const handleRequestAction = async (requesterId, action) => {
-      try {
-          const res = await fetch(`${API_BASE_URL}/api/groups/handle-request`, {
-              method: 'POST',
-              headers: { "Content-Type": "application/json", Authorization: `Bearer ${user.token}` },
-              body: JSON.stringify({ groupId: group._id, requesterId, action })
-          });
-          if (res.ok) {
-              setJoinRequests(prev => prev.filter(req => req._id !== requesterId));
-              if (action === 'accept') {
-                  toast.success("User added!");
-                  setGroup(prev => ({...prev, members: [...prev.members, requesterId]})); 
-              } else toast.success("Rejected");
-          }
-      } catch (error) { toast.error("Action failed"); }
-  };
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/groups/handle-request`, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${user.token}` },
+        body: JSON.stringify({ groupId: group._id, requesterId, action })
+      });
+      if (res.ok) {
+        setJoinRequests(prev => prev.filter(req => req._id !== requesterId));
+        if (action === 'accept') {
+          toast.success("User added!");
+          setGroup(prev => ({ ...prev, members: [...prev.members, requesterId] }));
+        } else toast.success("Rejected");
+      }
+    } catch (error) { toast.error("Action failed"); }
+  };
+
   const handleDownload = (url, filename) => {
     const link = document.createElement("a"); link.href = url; link.download = filename || "download";
     link.target = "_blank"; link.rel = "noopener noreferrer";
@@ -257,9 +262,12 @@ export default function GroupChatWindow({ group: initialGroup, user, onBack }) {
     });
   };
 
-  return (
-    <div className="flex flex-col h-[100dvh] bg-white dark:bg-slate-900 overflow-hidden relative">
-      <div className={`flex-1 flex flex-col h-full relative ${activeSidePanel ? "hidden md:flex" : "flex"}`}>
+  return (
+
+    <div className="flex flex-col h-[100dvh] bg-white dark:bg-slate-900 overflow-hidden relative">
+
+      <div className={`flex-1 flex flex-col h-full relative ${activeSidePanel ? "hidden md:flex" : "flex"}`}>
+
         <div className="sticky top-0 z-50 p-4 border-b dark:border-slate-800 flex justify-between items-center bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-md">
           <div className="flex items-center gap-3 overflow-hidden">
             <button onClick={onBack} className="md:hidden p-2 flex-shrink-0"><ArrowLeft /></button>
@@ -267,10 +275,11 @@ export default function GroupChatWindow({ group: initialGroup, user, onBack }) {
               {group.image ? <img src={group.image} className="w-full h-full object-cover" alt="Group Icon" /> : <span className="text-slate-500 font-bold">{group.name?.[0]}</span>}
             </div>
             <div className="min-w-0">
-                <h3 className="font-bold dark:text-white truncate">{group.name}</h3>
-                <p className="text-xs text-slate-500 truncate">
-                    {group.description || `${group.members?.length || 0} members`}
-                </p>
+              <h3 className="font-bold dark:text-white truncate">{group.name}</h3>
+
+              <p className="text-xs text-slate-500 truncate">
+                {group.description || `${group.members?.length || 0} members`}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
@@ -278,11 +287,13 @@ export default function GroupChatWindow({ group: initialGroup, user, onBack }) {
             <button onClick={() => setActiveSidePanel(activeSidePanel === "members" ? null : "members")} className={`p-2 rounded-full transition ${activeSidePanel === "members" ? "bg-brand-primary text-white" : "hover:bg-slate-200 dark:hover:bg-slate-800 dark:text-white"}`} title="Members"><Users size={18} /></button>
             <button onClick={() => setShowInviteModal(true)} className="flex items-center gap-2 text-xs bg-slate-200 dark:bg-slate-800 px-3 py-2 rounded-full dark:text-white hover:bg-slate-300 transition ml-2"><UserPlus size={14} /><span className="hidden sm:inline">Invite</span></button>
           </div>
-        </div>
+        </div>
+
         <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
           {renderMessagesWithDates()}
           <div ref={messagesEndRef} />
-        </div>
+        </div>
+
         <div className="p-4 border-t dark:border-slate-800 bg-white dark:bg-slate-900 relative">
           {showEmojiPicker && (
             <div className="absolute bottom-20 left-4 z-10 shadow-xl rounded-xl">
@@ -309,7 +320,8 @@ export default function GroupChatWindow({ group: initialGroup, user, onBack }) {
             </button>
           </form>
         </div>
-      </div>
+      </div>
+
       {activeSidePanel && (
         <div className="w-full md:w-80 bg-slate-50 dark:bg-slate-950 border-l dark:border-slate-800 h-full flex flex-col animate-in slide-in-from-right duration-300">
           <div className="p-4 border-b dark:border-slate-800 flex items-center justify-between">
@@ -387,7 +399,7 @@ export default function GroupChatWindow({ group: initialGroup, user, onBack }) {
                         <span className="text-[10px] text-slate-500">{isMemberAdmin ? "Admin" : member.instituteName || "Student"}</span>
                       </div>
                       {isAdmin && !isCurrentUser && (
-                          <button onClick={() => removeMember(memberId)} className="ml-auto text-slate-400 hover:text-red-500"><Trash2 size={16}/></button>
+                        <button onClick={() => removeMember(memberId)} className="ml-auto text-slate-400 hover:text-red-500"><Trash2 size={16} /></button>
                       )}
                     </div>
                   );
@@ -402,49 +414,50 @@ export default function GroupChatWindow({ group: initialGroup, user, onBack }) {
             </div>
           )}
         </div>
-      )}
+      )}
+
       {showInviteModal && (
         <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl p-6 relative border dark:border-slate-800">
-                 <button onClick={() => setShowInviteModal(false)} className="absolute top-4 right-4 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500 transition"><X size={20}/></button>
-                 <h3 className="font-bold mb-4 text-lg dark:text-white">Invite to Group</h3>
-                 <div className="mb-6">
-                     <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Group Link</label>
-                     <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-3 rounded-xl border border-transparent focus-within:border-brand-primary transition">
-                        <code className="text-sm flex-1 truncate text-slate-600 dark:text-slate-300">{window.location.origin}/join/{group._id}</code>
-                        <button onClick={() => {navigator.clipboard.writeText(`${window.location.origin}/join/${group._id}`); toast.success("Link copied!");}} className="p-2 bg-white dark:bg-slate-700 rounded-lg shadow-sm hover:text-brand-primary transition" title="Copy Link"><Copy size={16}/></button>
-                     </div>
-                 </div>
-
-                 {isAdmin && (
-                    <div>
-                        <div className="flex items-center justify-between mb-3">
-                            <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2"><Users size={14}/> Pending Requests</label>
-                            {joinRequests.length > 0 && <span className="bg-brand-primary text-white text-[10px] px-2 py-0.5 rounded-full font-bold">{joinRequests.length}</span>}
-                        </div>
-                        <div className="space-y-3 max-h-60 overflow-y-auto pr-1 custom-scrollbar bg-slate-50 dark:bg-slate-950/50 p-2 rounded-xl border dark:border-slate-800">
-                            {joinRequests.length === 0 ? (
-                                <div className="text-center py-8 text-slate-400 text-sm flex flex-col items-center gap-2"><Users size={24} className="opacity-20"/> No pending requests</div>
-                            ) : (
-                                joinRequests.map(req => (
-                                    <div key={req._id} className="flex items-center justify-between p-2 bg-white dark:bg-slate-900 rounded-lg shadow-sm border dark:border-slate-800">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden">
-                                                {req.profilePicture ? <img src={req.profilePicture} className="w-full h-full object-cover" alt={req.name} /> : <div className="w-full h-full flex items-center justify-center font-bold text-slate-500 text-xs">{req.name?.[0]}</div>}
-                                            </div>
-                                            <div><h4 className="font-bold text-sm dark:text-white">{req.name}</h4><p className="text-[10px] text-slate-500">{req.instituteName || "Student"}</p></div>
-                                        </div>
-                                        <div className="flex gap-1">
-                                            <button onClick={() => handleRequestAction(req._id, 'reject')} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition" title="Reject"><X size={16}/></button>
-                                            <button onClick={() => handleRequestAction(req._id, 'accept')} className="p-2 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full transition" title="Accept"><Check size={16}/></button>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
-                 )}
+          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl p-6 relative border dark:border-slate-800">
+            <button onClick={() => setShowInviteModal(false)} className="absolute top-4 right-4 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500 transition"><X size={20} /></button>
+            <h3 className="font-bold mb-4 text-lg dark:text-white">Invite to Group</h3>
+            <div className="mb-6">
+              <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Group Link</label>
+              <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-3 rounded-xl border border-transparent focus-within:border-brand-primary transition">
+                <code className="text-sm flex-1 truncate text-slate-600 dark:text-slate-300">{window.location.origin}/join/{group._id}</code>
+                <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/join/${group._id}`); toast.success("Link copied!"); }} className="p-2 bg-white dark:bg-slate-700 rounded-lg shadow-sm hover:text-brand-primary transition" title="Copy Link"><Copy size={16} /></button>
+              </div>
             </div>
+
+            {isAdmin && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2"><Users size={14} /> Pending Requests</label>
+                  {joinRequests.length > 0 && <span className="bg-brand-primary text-white text-[10px] px-2 py-0.5 rounded-full font-bold">{joinRequests.length}</span>}
+                </div>
+                <div className="space-y-3 max-h-60 overflow-y-auto pr-1 custom-scrollbar bg-slate-50 dark:bg-slate-950/50 p-2 rounded-xl border dark:border-slate-800">
+                  {joinRequests.length === 0 ? (
+                    <div className="text-center py-8 text-slate-400 text-sm flex flex-col items-center gap-2"><Users size={24} className="opacity-20" /> No pending requests</div>
+                  ) : (
+                    joinRequests.map(req => (
+                      <div key={req._id} className="flex items-center justify-between p-2 bg-white dark:bg-slate-900 rounded-lg shadow-sm border dark:border-slate-800">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden">
+                            {req.profilePicture ? <img src={req.profilePicture} className="w-full h-full object-cover" alt={req.name} /> : <div className="w-full h-full flex items-center justify-center font-bold text-slate-500 text-xs">{req.name?.[0]}</div>}
+                          </div>
+                          <div><h4 className="font-bold text-sm dark:text-white">{req.name}</h4><p className="text-[10px] text-slate-500">{req.instituteName || "Student"}</p></div>
+                        </div>
+                        <div className="flex gap-1">
+                          <button onClick={() => handleRequestAction(req._id, 'reject')} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition" title="Reject"><X size={16} /></button>
+                          <button onClick={() => handleRequestAction(req._id, 'accept')} className="p-2 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full transition" title="Accept"><Check size={16} /></button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

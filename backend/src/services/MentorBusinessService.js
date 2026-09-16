@@ -120,7 +120,6 @@ class MentorBusinessService {
   }
 
   async getMentors({ search, skills, company, sort } = {}) {
-    // 1. Find all mentors who have at least one active service
     const activeServices = await MentorServiceModel.find({ isActive: true }).select('mentor');
     const mentorsWithServices = [...new Set(activeServices.map(s => s.mentor.toString()))];
 

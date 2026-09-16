@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
-import { Users, Trophy, FileText, TrendingUp, CheckCircle, Loader2, BarChart2, Calendar, DollarSign } from 'lucide-react';
+import { Users, Trophy, FileText, TrendingUp, CheckCircle, Loader2, BarChart2, Calendar, DollarSign, Download, Award, Gavel, Settings } from 'lucide-react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7000';
 
@@ -22,7 +22,7 @@ const StatCard = ({ label, value, icon: Icon, color = 'indigo' }) => (
 
 export default function HackathonDashboardPage() {
   const { slug }   = useParams();
-  const id = slug; // Keep id mapping for existing components
+  const id = slug;
   const { user }   = useSelector(state => state.auth);
   const router     = useRouter();
   const [data, setData]       = useState(null);
@@ -44,6 +44,23 @@ export default function HackathonDashboardPage() {
     };
     fetchDashboard();
   }, [id, user, router]);
+
+  const handleAction = async (endpoint, method = 'POST') => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/hackathons/${id}/${endpoint}`, {
+        method,
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      const json = await res.json();
+      if (json.success || res.ok) {
+        toast.success(json.message || 'Action completed successfully');
+      } else {
+        toast.error(json.message || 'Action failed');
+      }
+    } catch {
+      toast.error('Network error during action');
+    }
+  };
 
   if (loading) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -70,12 +87,20 @@ export default function HackathonDashboardPage() {
               </Link>
             </div>
           </div>
-          <Link
-            href={`/hackathons/${h._id}/edit`}
-            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition-all"
-          >
-            Edit Hackathon
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/hackathons/${slug}/find-teammates`}
+              className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm transition-all"
+            >
+              Find Teammates
+            </Link>
+            <Link
+              href={`/hackathons/${h._id}/edit`}
+              className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition-all"
+            >
+              Edit Hackathon
+            </Link>
+          </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <StatCard label="Total Registrations" value={r.total}     icon={Users}    color="indigo" />
@@ -129,6 +154,38 @@ export default function HackathonDashboardPage() {
             <h4 className="font-bold text-white group-hover:text-indigo-300 transition-colors">Participants</h4>
             <p className="text-slate-500 text-sm">Manage registrations and approvals</p>
           </Link>
+        </div>
+        
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mt-6">
+          <h3 className="font-bold text-white text-lg mb-5 flex items-center gap-2"><Settings className="w-5 h-5" /> Organizer Actions</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <button onClick={() => handleAction('registrations/export', 'GET')} className="flex flex-col items-center justify-center p-4 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors border border-slate-700 hover:border-slate-600">
+              <Download className="w-6 h-6 text-indigo-400 mb-2" />
+              <span className="text-sm font-semibold">Export Registrations</span>
+            </button>
+            <button onClick={() => {
+              const email = prompt("Enter judge email:");
+              if (email) {
+                toast.success('Assigning judge...');
+                fetch(`${API_BASE_URL}/api/hackathons/${id}/judges`, {
+                  method: 'POST',
+                  headers: { Authorization: `Bearer ${user.token}`, 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ judges: [{ user: email }] })
+                }).then(res => res.json()).then(res => res.success ? toast.success("Judge assigned") : toast.error("Failed to assign"));
+              }
+            }} className="flex flex-col items-center justify-center p-4 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors border border-slate-700 hover:border-slate-600">
+              <Gavel className="w-6 h-6 text-purple-400 mb-2" />
+              <span className="text-sm font-semibold">Assign Judges</span>
+            </button>
+            <button onClick={() => { if(confirm('Are you sure you want to finalize results?')) handleAction('finalize-results'); }} className="flex flex-col items-center justify-center p-4 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors border border-slate-700 hover:border-slate-600">
+              <Trophy className="w-6 h-6 text-amber-400 mb-2" />
+              <span className="text-sm font-semibold">Finalize Results</span>
+            </button>
+            <button onClick={() => { if(confirm('Generate certificates for all attendees?')) handleAction('certificates/generate'); }} className="flex flex-col items-center justify-center p-4 rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors border border-slate-700 hover:border-slate-600">
+              <Award className="w-6 h-6 text-green-400 mb-2" />
+              <span className="text-sm font-semibold">Generate Certificates</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

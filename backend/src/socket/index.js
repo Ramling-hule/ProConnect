@@ -1,4 +1,5 @@
 import Message from '../models/Message.js';
+import MessageService from '../services/message.service.js';
 const roomParticipants = new Map();
 const getRoomUsers = (roomId) => Array.from(roomParticipants.get(roomId)?.values() || []);
 
@@ -55,7 +56,7 @@ function createDirectMessageHandlers(io, socket) {
       const isOnline = io.sockets.adapter.rooms.has(receiverId.toString());
       const status = isOnline ? 'delivered' : 'sent';
 
-      const newMessage = await Message.create({
+      const newMessage = await MessageService.saveMessage({
         sender: senderId,
         receiver: receiverId,
         text,
@@ -91,7 +92,7 @@ function createGroupHandlers(io, socket) {
   socket.on('send_group_message', async (data) => {
     const { senderId, groupId, text, fileUrl, fileType, fileName } = data;
     try {
-      const newMessage = await Message.create({
+      const newMessage = await MessageService.saveMessage({
         sender: senderId,
         group: groupId,
         text,
@@ -100,8 +101,7 @@ function createGroupHandlers(io, socket) {
         fileName,
       });
 
-      const populatedMsg = await newMessage.populate('sender', 'name profilePicture');
-      io.to(groupId).emit('receive_group_message', populatedMsg);
+      io.to(groupId).emit('receive_group_message', newMessage);
     } catch (err) {
       console.error('Group message error:', err);
     }
@@ -149,8 +149,6 @@ function createPodHandlers(io, socket) {
   socket.on('send_pod_message', async (data) => {
     const { senderId, podId, content } = data;
     try {
-      // In a real scenario we'd persist this in PodMessage, but the controller handles persistence for HTTP.
-      // Here we just broadcast real-time if they send over socket.
       socket.to(`pod_${podId}`).emit('receive_pod_message', { senderId, podId, content, createdAt: new Date() });
     } catch (err) {
       console.error('Pod message error:', err);
@@ -168,7 +166,7 @@ export const registerSocketHandlers = (io) => {
     createDirectMessageHandlers(io, socket);
     createGroupHandlers(io, socket);
     createRoomHandlers(io, socket);
-    createHackathonHandlers(io, socket); // ← new, additive only
+    createHackathonHandlers(io, socket);
     createPodHandlers(io, socket);
   });
 };

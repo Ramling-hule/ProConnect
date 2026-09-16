@@ -48,6 +48,64 @@ export const cancelRegistration = asyncHandler(async (req, res) => {
   res.json({ success: true, registration: reg });
 });
 
+export const approveRegistration = asyncHandler(async (req, res) => {
+  const reg = await HackathonRegistrationService.approveRegistration(
+    req.params.registrationId, req.user._id, req.app.get('io')
+  );
+  res.json({ success: true, registration: reg });
+});
+
+export const rejectRegistration = asyncHandler(async (req, res) => {
+  const reg = await HackathonRegistrationService.rejectRegistration(
+    req.params.registrationId, req.user._id, req.body.reason, req.app.get('io')
+  );
+  res.json({ success: true, registration: reg });
+});
+
+export const checkInRegistration = asyncHandler(async (req, res) => {
+  const reg = await HackathonRegistrationService.checkIn(
+    req.params.registrationId, req.user._id
+  );
+  res.json({ success: true, registration: reg });
+});
+
+export const assignJudges = asyncHandler(async (req, res) => {
+  const hackathon = await HackathonService.assignJudges(
+    req.params.id, req.user._id, req.body.judges
+  );
+  res.json({ success: true, hackathon });
+});
+
+export const scoreTeam = asyncHandler(async (req, res) => {
+  const submission = await HackathonSubmissionService.scoreSubmission(
+    req.params.id, req.params.teamId, req.user._id, req.body
+  );
+  res.json({ success: true, submission });
+});
+
+export const finalizeResults = asyncHandler(async (req, res) => {
+  const result = await HackathonSubmissionService.finalizeResults(
+    req.params.id, req.user._id, req.app.get('io')
+  );
+  res.json(result);
+});
+
+export const generateCertificates = asyncHandler(async (req, res) => {
+  const hackathon = await HackathonService.getBySlug(req.hackathon?.slug) || req.hackathon;
+  if (!hackathon) return res.status(404).json({ success: false, message: 'Hackathon not found' });
+  if (hackathon.organizer.toString() !== req.user._id.toString()) {
+    return res.status(403).json({ success: false, message: 'Only the organizer can generate certificates' });
+  }
+  
+  if (hackathon.status !== 'completed') {
+    return res.status(400).json({ success: false, message: 'Hackathon must be completed to generate certificates' });
+  }
+  const CertificateWorker = (await import('../workers/certificateWorker.js')).default;
+  CertificateWorker.processCertificates(hackathon._id, req.app.get('io')).catch(console.error);
+
+  res.status(202).json({ success: true, message: 'Certificate generation queued and is processing in the background' });
+});
+
 export const createTeam = asyncHandler(async (req, res) => {
   const team = await HackathonTeamService.createTeam(
     req.params.id, req.user._id, req.body,
@@ -140,6 +198,16 @@ export const getProjectIdeas = asyncHandler(async (req, res) => {
   res.json({ success: true, data });
 });
 
+export const createTeamPaymentOrder = asyncHandler(async (req, res) => {
+  const result = await PaymentService.createTeamHackathonOrder(req.params.teamId, req.user._id);
+  res.json({ success: true, ...result });
+});
+
+export const verifyTeamPayment = asyncHandler(async (req, res) => {
+  const result = await PaymentService.verifyTeamHackathonPayment({ ...req.body, teamId: req.params.teamId });
+  res.json(result);
+});
+
 export const getTeamBalanceAnalysis = asyncHandler(async (req, res) => {
   const data = await HackathonAiService.getTeamBalanceAnalysis(req.params.id, req.params.teamId);
   res.json({ success: true, data });
@@ -155,5 +223,18 @@ export const getOrganizerDashboard = asyncHandler(async (req, res) => {
   res.json({ success: true, data });
 });
 
-export { createTeammateRequest, getTeammateRequests, expressInterest } from './teammateRequestController.js';
+export const exportRegistrationsCSV = asyncHandler(async (req, res) => {
+  const csvData = await HackathonRegistrationService.exportRegistrationsCSV(req.params.id);
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename="registrations_${req.params.id}.csv"`);
+  res.send(csvData);
+});
 
+export const bulkUpdateStatus = asyncHandler(async (req, res) => {
+  const result = await HackathonRegistrationService.bulkUpdateStatus(
+    req.params.id, req.body.registrationIds, req.body.status, req.app.get('io')
+  );
+  res.json({ success: true, result });
+});
+
+export { createTeammateRequest, getTeammateRequests, getGlobalTeammateRequests, expressInterest, searchTeammates } from './teammateRequestController.js';

@@ -7,7 +7,7 @@ import { setNotifications, addNotification } from "@/redux/features/notification
 import { logout, openAuthModal } from "@/redux/features/authSlice";
 import RightSidebar from "@/Components/RightSidebar";
 import CopilotPanel from "@/Components/CopilotPanel";
-import { Home, Search, Users, Trophy, Layers, Sun, Moon, Sparkles, Briefcase, Target, Compass, UserPlus } from "lucide-react";
+import { Home, Search, Users, Trophy, Layers, Sun, Moon, Sparkles, Briefcase, Target, Compass, UserPlus, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import ChatWindow from "@/Components/ChatWindow";
@@ -27,6 +27,7 @@ export default function DashboardLayout({ children }) {
   const pathname = usePathname();
 
   const isMentor = user?.role?.toLowerCase() === 'mentor';
+  const isAdmin  = user?.role?.toLowerCase() === 'admin';
   let navItems = [];
 
   if (isMentor) {
@@ -46,8 +47,7 @@ export default function DashboardLayout({ children }) {
     navItems.push(
       { id: "hackathons", label: "Hackathons", icon: Trophy, href: "/hackathons" },
       { id: "find-teammates", label: "Find Teammates", icon: UserPlus, href: "/find-teammates" },
-      { id: "mentors", label: "Mentors", icon: Briefcase, href: "/mentors" },
-      { id: "career-copilot", label: "Career Copilot", icon: Compass, href: "/career-copilot" }
+      { id: "mentors", label: "Mentors", icon: Briefcase, href: "/mentors" }
     );
   }
 
@@ -77,9 +77,6 @@ export default function DashboardLayout({ children }) {
       return () => { if (socket) socket.disconnect(); };
     }
   }, [user, dispatch]);
-  /* ─────────────────────────────────────────────────────────
-     COLOUR TOKENS (derived from isDark)
-  ───────────────────────────────────────────────────────── */
   const bg    = isDark ? "#060B18"  : "#F0F4FF";
   const nav   = isDark ? "rgba(6,11,24,0.85)"  : "rgba(255,255,255,0.85)";
   const sidebar = isDark ? "#0D1526" : "#FFFFFF";
@@ -193,6 +190,24 @@ export default function DashboardLayout({ children }) {
                 AI Copilot
               </button>
             </nav>
+
+            {}
+            {isAdmin && (
+              <div className="mt-4">
+                <Link
+                  href="/admin"
+                  className={`${navItemBase} border`}
+                  style={{
+                    background: isDark ? "rgba(249,115,22,0.08)" : "rgba(249,115,22,0.06)",
+                    borderColor: isDark ? "rgba(249,115,22,0.2)" : "rgba(249,115,22,0.15)",
+                    color: "#F97316",
+                  }}
+                >
+                  <ShieldCheck size={18} />
+                  Admin Panel
+                </Link>
+              </div>
+            )}
             {user && (
               <div
                 className="mt-auto mx-0 p-3 rounded-2xl flex items-center gap-3"

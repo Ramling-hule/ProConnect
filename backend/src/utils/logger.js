@@ -64,7 +64,7 @@ const errorFileTransport = new DailyRotateFile({
   datePattern: 'YYYY-MM-DD',
   level: 'error',
   maxSize: '20m',
-  maxFiles: '30d',   // Keep 30 days of error logs
+  maxFiles: '30d',
   zippedArchive: true,
   format: prodFormat,
 });
@@ -74,7 +74,7 @@ const combinedFileTransport = new DailyRotateFile({
   datePattern: 'YYYY-MM-DD',
   level: 'info',
   maxSize: '20m',
-  maxFiles: '14d',   // Keep 14 days of combined logs
+  maxFiles: '14d',
   zippedArchive: true,
   format: prodFormat,
 });

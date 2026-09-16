@@ -6,7 +6,7 @@ class RankingEngine {
     const W_PERSONALIZATION = 0.2;
 
     const scoredCandidates = pineconeMatches.map(match => {
-      const semanticScore = match.score; // e.g., 0.85
+      const semanticScore = match.score;
       const meta = match.metadata || {};
       const responseRate = meta.responseRate || 0.8;
       const completionRate = meta.completionRate || 0.8;
@@ -15,10 +15,10 @@ class RankingEngine {
       const businessScore = (responseRate * 0.4) + (completionRate * 0.4) + (Math.min(Math.log10(sessions) / 3, 1) * 0.2);
       let personalizationScore = 1.0;
       if (meta.hourlyPrice > studentProfile.budget) {
-        personalizationScore -= 0.5; // Heavy penalty for being over budget
+        personalizationScore -= 0.5;
       }
       if (meta.timezone !== studentProfile.timezone) {
-        personalizationScore -= 0.2; // Slight penalty for different timezone
+        personalizationScore -= 0.2;
       }
       const totalScore = (semanticScore * W_SEMANTIC) + (businessScore * W_BUSINESS) + (personalizationScore * W_PERSONALIZATION);
 

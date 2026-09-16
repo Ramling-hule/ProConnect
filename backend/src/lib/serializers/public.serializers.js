@@ -82,7 +82,7 @@ export function serializePublicPost(post) {
     id:            p._id,
     author,
     text:          p.text  ?? null,
-    image:         p.image ?? null,  // legacy
+    image:         p.image ?? null,
     media:         p.media ?? null,
     likesCount:    Array.isArray(p.likes)    ? p.likes.length    : (p.likesCount    ?? 0),
     commentsCount: Array.isArray(p.comments) ? p.comments.length : (p.commentsCount ?? 0),

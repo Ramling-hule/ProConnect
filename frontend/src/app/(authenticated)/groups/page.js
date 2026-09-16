@@ -5,7 +5,7 @@ import { Users, Plus, Lock, Globe, Search, Shield, Clock, Send } from 'lucide-re
 import { openAuthModal } from '@/redux/features/authSlice';
 import GroupChatWindow from '@/Components/GroupChatWindow'; 
 import { API_BASE_URL } from '@/utils/config';
-import { toast } from 'react-hot-toast'; // Assuming you have toast for notifications
+import { toast } from 'react-hot-toast';
 import { groupSchema, getZodError } from '@/utils/schemas';
 
 export default function GroupsPage() {
@@ -17,7 +17,7 @@ export default function GroupsPage() {
   const [groups, setGroups] = useState([]);
   const [activeGroup, setActiveGroup] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(""); // Filter state
+  const [searchQuery, setSearchQuery] = useState("");
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newPrivacy, setNewPrivacy] = useState("public");

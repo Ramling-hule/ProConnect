@@ -13,6 +13,8 @@ import hackathonRoutes from './hackathonRoutes.js';
 import publicRoutes from './publicRoutes.js';
 import podRoutes from './podRoutes.js';
 import teamRoutes from './teamRoutes.js';
+import webinarRoutes from './webinarRoutes.js';
+import adminRoutes from './adminRoutes.js';
 
 const routes = [
   ['/api/public', publicRoutes],
@@ -30,6 +32,8 @@ const routes = [
   ['/api/hackathons', hackathonRoutes],
   ['/api/pods', podRoutes],
   ['/api/teams', teamRoutes],
+  ['/api/webinars', webinarRoutes],
+  ['/api/admin', adminRoutes],
 ];
 
 export const registerRoutes = (app) => {

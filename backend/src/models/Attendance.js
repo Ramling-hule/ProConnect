@@ -12,8 +12,9 @@ const attendanceSchema = new mongoose.Schema({
     ref: 'PodMilestone'
   },
   sessionId: {
-    type: String,
-    required: true // WebRTC session ID or Meeting ID
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PodSession',
+    required: true
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,

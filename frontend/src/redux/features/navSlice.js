@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  activeTab: 'home', // Default view
+  activeTab: 'home',
 };
 
 const navSlice = createSlice({

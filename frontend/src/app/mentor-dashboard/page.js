@@ -89,8 +89,6 @@ export default function MentorDashboardPage() {
     saturday: { isAvailable: false, slots: [] },
     sunday: { isAvailable: false, slots: [] }
   });
-
-  // Load existing availability when fetched
   useEffect(() => {
     if (dashboardData?.mentor?.availability?.weeklySchedule) {
       setAvailability(dashboardData.mentor.availability.weeklySchedule);
@@ -131,7 +129,7 @@ export default function MentorDashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#060B18] text-slate-200 font-sans pb-20">
-      {/* Header */}
+      {}
       <div className="sticky top-0 z-30 bg-[#060B18]/80 backdrop-blur-xl border-b border-white/5 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -165,7 +163,7 @@ export default function MentorDashboardPage() {
 
       <div className="max-w-7xl mx-auto px-6 mt-10">
         
-        {/* OVERVIEW TAB */}
+        {}
         {activeTab === 'overview' && (
           <div className="animate-fade-up space-y-10">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -216,7 +214,7 @@ export default function MentorDashboardPage() {
                   {todaysBookings.map(b => (
                     <div key={b._id} className="flex flex-col md:flex-row md:items-center justify-between bg-white/5 hover:bg-white/10 p-5 rounded-2xl border border-white/10 transition-colors gap-4">
                       <div className="flex items-center gap-4">
-                        <img src={b.user?.profilePicture || 'https://api.dicebear.com/7.x/notionists/svg?seed='+b.user?.name} className="w-12 h-12 rounded-xl bg-slate-800" alt="User" />
+                        <img src={b.user?.profilePicture || 'https:
                         <div>
                           <p className="font-bold text-lg text-white">{b.user?.name}</p>
                           <p className="text-sm font-medium text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-md inline-flex mt-1">{b.service?.title} • {b.startTime}</p>
@@ -233,7 +231,7 @@ export default function MentorDashboardPage() {
           </div>
         )}
 
-        {/* SERVICES TAB */}
+        {}
         {activeTab === 'services' && (
           <div className="animate-fade-up grid grid-cols-1 xl:grid-cols-3 gap-8">
             <div className="xl:col-span-2 space-y-6">
@@ -315,7 +313,7 @@ export default function MentorDashboardPage() {
           </div>
         )}
 
-        {/* AVAILABILITY TAB */}
+        {}
         {activeTab === 'availability' && (
           <div className="animate-fade-up max-w-4xl mx-auto bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/10 blur-3xl rounded-full pointer-events-none"></div>
@@ -402,7 +400,7 @@ export default function MentorDashboardPage() {
           </div>
         )}
 
-        {/* BOOKINGS TAB */}
+        {}
         {activeTab === 'bookings' && (
           <div className="animate-fade-up space-y-6">
             <div className="flex items-center justify-between">

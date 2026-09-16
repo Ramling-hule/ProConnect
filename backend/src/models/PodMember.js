@@ -20,9 +20,18 @@ const podMemberSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['INVITED', 'APPLIED', 'ACTIVE', 'LEFT', 'REMOVED'],
+    enum: ['INVITED', 'APPLIED', 'ACTIVE', 'LEFT', 'REMOVED', 'PENDING_PAYMENT'],
     default: 'ACTIVE'
   },
+  topic: { type: String, default: 'Pod Registration' },
+  description: { type: String },
+  preferredOutcome: { type: String },
+  additionalInfo: { type: String },
+  attachments: [{
+    fileName: { type: String },
+    fileUrl: { type: String },
+    fileType: { type: String }
+  }],
   learningScore: {
     type: Number,
     default: 0

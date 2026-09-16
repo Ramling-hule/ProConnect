@@ -7,7 +7,9 @@ import HackathonQueryBuilder from '../strategies/HackathonFilterStrategy.js';
 class HackathonService {
 
   async listHackathons(params = {}) {
-    const { page = 1, limit = 20, sort = 'createdAt' } = params;
+    const rawLimit = Math.min(Number(params.limit) || 20, 50);
+    const { page = 1, sort = 'createdAt' } = params;
+    const limit = rawLimit;
 
     const cacheKey = CacheKeys.hackathonList(params);
     const cached   = await CacheService.get(cacheKey);
@@ -76,7 +78,26 @@ class HackathonService {
     hackathon.deletedAt = new Date();
     hackathon.status    = 'cancelled';
     await HackathonRepository.save(hackathon);
+    
     await CacheService.del(CacheKeys.hackathonBySlug(hackathon.slug));
+    await CacheService.del(CacheKeys.hackathonListAll());
+    return hackathon;
+  }
+
+  async assignJudges(hackathonId, organizerId, judgesArray) {
+    const hackathon = await HackathonRepository.findById(hackathonId);
+    if (!hackathon) throw new AppError('Hackathon not found', 404);
+    if (hackathon.organizer.toString() !== organizerId.toString()) {
+      throw new AppError('Only the organizer can assign judges', 403);
+    }
+
+    hackathon.judges = judgesArray;
+    await HackathonRepository.save(hackathon);
+    
+    await CacheService.del(CacheKeys.hackathonBySlug(hackathon.slug));
+    await CacheService.del(CacheKeys.hackathonListAll());
+    
+    return hackathon;
   }
 }
 

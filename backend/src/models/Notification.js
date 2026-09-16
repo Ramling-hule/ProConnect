@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const NotificationSchema = new mongoose.Schema({
   recipient: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Optional (e.g., system alerts)
+  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   type: { 
     type: String, 
     enum: [
@@ -17,10 +17,10 @@ const NotificationSchema = new mongoose.Schema({
     ], 
     required: true 
   },
-  message: { type: String }, // Optional custom text
+  message: { type: String },
   isRead: { type: Boolean, default: false },
-  link: { type: String }, // Where should clicking take them? (e.g., "/chat")
-  relatedId: { type: mongoose.Schema.Types.ObjectId }, // Reference to Group, Post, etc.
+  link: { type: String },
+  relatedId: { type: mongoose.Schema.Types.ObjectId },
 }, { timestamps: true });
 
 export default mongoose.model('Notification', NotificationSchema);

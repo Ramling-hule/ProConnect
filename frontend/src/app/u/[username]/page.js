@@ -62,7 +62,7 @@ export default function PublicProfilePage() {
         <div className="px-6 pb-6">
           <div className="relative flex justify-between items-end -mt-16 mb-4">
             <img 
-              src={profile.profilePicture || '/default-avatar.png'} 
+              src={profile.profilePicture || '/default-avatar.svg'} 
               alt={profile.name}
               className="w-32 h-32 rounded-full border-4 border-white dark:border-gray-800 object-cover bg-gray-100"
             />
@@ -84,8 +84,6 @@ export default function PublicProfilePage() {
               </p>
             )}
           </div>
-        )}
-
         {profile.availability && profile.availability !== "Not Looking" && (
           <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
             <h3 className="font-bold text-green-800 dark:text-green-300">Availability</h3>
@@ -116,6 +114,7 @@ export default function PublicProfilePage() {
             </a>
           </div>
         )}
+      </div>
       </div>
 
       {profile.about && (

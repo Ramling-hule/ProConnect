@@ -15,7 +15,7 @@ export const requireHackathonOwner = async (req, res, next) => {
       return next(new AppError('Not authorized — you do not own this hackathon', 403));
     }
 
-    req.hackathon = hackathon; // pass to next handler, avoiding a duplicate DB call
+    req.hackathon = hackathon;
     next();
   } catch (err) {
     next(err);
@@ -31,7 +31,7 @@ export const requireTeamCaptain = async (req, res, next) => {
       return next(new AppError('Only the team captain can perform this action', 403));
     }
 
-    req.team = team; // attach for downstream use
+    req.team = team;
     next();
   } catch (err) {
     next(err);

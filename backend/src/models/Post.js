@@ -6,8 +6,8 @@ const postSchema = new mongoose.Schema({
   image: { type: String },
   media: {
     url:              { type: String },
-    resourceType:     { type: String, enum: ['image', 'video', 'raw'] }, // Cloudinary resource_type
-    format:           { type: String }, // e.g. 'jpg', 'mp4', 'pdf', 'txt'
+    resourceType:     { type: String, enum: ['image', 'video', 'raw'] },
+    format:           { type: String },
     originalFilename: { type: String },
     bytes:            { type: Number },
   },
@@ -35,6 +35,6 @@ const postSchema = new mongoose.Schema({
 
 postSchema.index({ createdAt: -1, _id: -1 });
 postSchema.index({ user: 1 });
-postSchema.index({ postType: 1, createdAt: -1 }); // for hackathon LFM feed queries
+postSchema.index({ postType: 1, createdAt: -1 });
 
 export default mongoose.model('Post', postSchema);

@@ -1,14 +1,14 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Bell, Check, Loader } from "lucide-react"; // Added Loader icon
+import { Bell, Check, Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { markAllRead, setNotifications } from "@/redux/features/notificationSlice"; // Import setNotifications
+import { markAllRead, setNotifications } from "@/redux/features/notificationSlice";
 import { API_BASE_URL } from "@/utils/config";
 
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false); // Local loading state for refresh
+  const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
   
   const dispatch = useDispatch();
@@ -49,7 +49,7 @@ export default function NotificationDropdown() {
   };
 
   const handleMarkAllRead = async () => {
-    dispatch(markAllRead()); // Optimistic Update
+    dispatch(markAllRead());
     try {
       const token = user?.token || localStorage.getItem('token');
       await fetch(`${API_BASE_URL}/api/notifications/mark-read`, {

@@ -33,7 +33,7 @@ export const errorHandler = (err, req, res, next) => {
     success   : false,
     status    : err.status || 'error',
     message   : err.message || 'Internal Server Error',
-    requestId : logContext.requestId, // Let clients reference this in support tickets
+    requestId : logContext.requestId,
   };
   if (env.nodeEnv !== 'production') {
     response.stack = err.stack;

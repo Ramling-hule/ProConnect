@@ -5,10 +5,14 @@ const messageSchema = new mongoose.Schema({
   receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, 
   group: { type: mongoose.Schema.Types.ObjectId, ref: 'Group' }, 
   
-  text: { type: String },
-  fileUrl: { type: String }, // Cloudinary URL
+  encryptedMessage: { type: String },
+  iv: { type: String },
+  authTag: { type: String },
+  keyVersion: { type: Number, default: 1 },
+  messageType: { type: String, enum: ['text', 'file', 'system'], default: 'text' },
+  fileUrl: { type: String },
   fileType: { type: String, enum: ['image', 'video', 'pdf', 'ppt', 'none', 'file'], default: 'none' },
-  fileName: { type: String }, // Original name of the file
+  fileName: { type: String },
   
   status: { type: String, enum: ['sent', 'delivered', 'read'], default: 'sent' },
   readAt: { type: Date },

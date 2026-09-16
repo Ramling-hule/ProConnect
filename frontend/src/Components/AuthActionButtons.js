@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { openAuthModal } from '@/redux/features/authSlice';
 import { toast } from 'react-hot-toast';
 import HackathonRegistrationModal from './HackathonRegistrationModal';
+import SessionBookingModal from './SessionBookingModal';
 
 export function RegisterHackathonButton({ hackathonId, slug, soloAllowed }) {
   const { user } = useSelector((state) => state.auth);
@@ -36,22 +37,32 @@ export function RegisterHackathonButton({ hackathonId, slug, soloAllowed }) {
   );
 }
 
-export function BookSessionButton({ username }) {
+export function BookSessionButton({ mentorId, username }) {
   const { user } = useSelector((state) => state.auth);
   const router = useRouter();
   const dispatch = useDispatch();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleAction = () => {
     if (!user) {
       dispatch(openAuthModal("Please sign in to book a session!"));
     } else {
-      toast.success("Booking initiated!");
+      setIsModalOpen(true);
     }
   };
 
   return (
-    <button onClick={handleAction} className="px-5 py-2 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 transition-colors text-sm">
-      Book a Session
-    </button>
+    <>
+      <button onClick={handleAction} className="px-5 py-2 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 transition-colors text-sm">
+        Book a Session
+      </button>
+
+      <SessionBookingModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        mentorId={mentorId}
+        username={username}
+      />
+    </>
   );
 }

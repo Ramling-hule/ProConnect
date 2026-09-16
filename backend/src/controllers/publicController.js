@@ -3,6 +3,7 @@ import User       from '../models/User.js';
 import Post       from '../models/Post.js';
 import Group      from '../models/Group.js';
 import Mentor     from '../models/Mentor.js';
+import MentorService from '../models/MentorService.js';
 import Hackathon  from '../models/Hackathon.js';
 import CacheService from '../services/CacheService.js';
 import {
@@ -12,6 +13,7 @@ import {
   serializePublicHackathon,
   serializePublicGroup,
 } from '../lib/serializers/public.serializers.js';
+import HackathonQueryBuilder from '../strategies/HackathonFilterStrategy.js';
 
 const MAX_LIMIT = 50;
 
@@ -44,7 +46,7 @@ export const getPublicFeed = async (req, res) => {
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     };
 
-    await CacheService.set(cacheKey, payload, 60); // 60s TTL
+    await CacheService.set(cacheKey, payload, 60);
     res.status(200).json(payload);
   } catch (err) {
     console.error('[public/feed]', err.message);
@@ -55,26 +57,50 @@ export const getPublicFeed = async (req, res) => {
 export const getPublicMentors = async (req, res) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
-    const cacheKey = `public:mentors:${page}:${limit}`;
+    const { search, minRating, minExperience, sessionType } = req.query;
+
+    const cacheKey = `public:mentors:${JSON.stringify({page, limit, search, minRating, minExperience, sessionType})}`;
 
     const cached = await CacheService.get(cacheKey);
     if (cached) return res.status(200).json(cached);
 
-    const mentors = await Mentor.find({ status: 'approved', isApproved: true })
+    const query = { status: 'approved', isApproved: true };
+
+    if (minRating) {
+      query.averageRating = { $gte: parseFloat(minRating) };
+    }
+
+    if (minExperience) {
+      query.yearsOfExperience = { $gte: parseInt(minExperience) };
+    }
+
+    if (search) {
+      const users = await User.find({ name: { $regex: search, $options: 'i' } }).select('_id').lean();
+      const userIds = users.map(u => u._id);
+      query.user = { $in: userIds };
+    }
+
+    if (sessionType) {
+      const services = await MentorService.find({ title: { $regex: sessionType, $options: 'i' }, isActive: true }).select('mentor').lean();
+      const mentorIdsWithService = services.map(s => s.mentor);
+      query._id = { $in: mentorIdsWithService };
+    }
+
+    const mentors = await Mentor.find(query)
       .sort({ averageRating: -1, totalSessions: -1 })
       .skip(skip)
       .limit(limit)
       .populate('user', 'name username profilePicture headline instituteName visibility')
       .lean();
 
-    const total = await Mentor.countDocuments({ status: 'approved', isApproved: true });
+    const total = await Mentor.countDocuments(query);
 
     const payload = {
       mentors: mentors.map(serializePublicMentor),
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     };
 
-    await CacheService.set(cacheKey, payload, 120); // 2 min TTL
+    await CacheService.set(cacheKey, payload, 120);
     res.status(200).json(payload);
   } catch (err) {
     console.error('[public/mentors]', err.message);
@@ -97,7 +123,6 @@ export const getPublicMentorByUsername = async (req, res) => {
       .lean();
 
     if (!mentor) {
-      // Fallback for regular users so they can be viewed on Mentor pages
       mentor = {
         _id: user._id,
         user: user,
@@ -128,18 +153,18 @@ export const getPublicMentorByUsername = async (req, res) => {
 export const getPublicHackathons = async (req, res) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
-    const cacheKey = `public:hackathons:${page}:${limit}`;
+    const { sort } = req.query;
+    const queryParams = { ...req.query, page, limit };
+    const cacheKey = `public:hackathons:${JSON.stringify(queryParams)}`;
 
     const cached = await CacheService.get(cacheKey);
     if (cached) return res.status(200).json(cached);
-    const query = {
-      status:    { $in: ['published', 'ongoing'] },
-      visibility: 'public',
-      deletedAt:  null,
-    };
+
+    const query = HackathonQueryBuilder.build(req.query);
+    const sortDoc = HackathonQueryBuilder.buildSort(sort);
 
     const hackathons = await Hackathon.find(query)
-      .sort({ isFeatured: -1, 'timeline.hackathonStart': 1 })
+      .sort(sortDoc)
       .skip(skip)
       .limit(limit)
       .populate('organizer', 'name username profilePicture')
@@ -271,7 +296,7 @@ export const getSitemapData = async (req, res) => {
       groups:     groups.map(g => ({ id: g._id, updatedAt: g.updatedAt })),
     };
 
-    await CacheService.set(cacheKey, payload, 3600); // 1hr TTL for sitemap
+    await CacheService.set(cacheKey, payload, 3600);
     res.status(200).json(payload);
   } catch (err) {
     console.error('[public/sitemap]', err.message);

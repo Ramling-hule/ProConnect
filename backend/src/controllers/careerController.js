@@ -17,11 +17,11 @@ About: ${user.about || 'None'}
 
 export const getCareerRecommendations = asyncHandler(async (req, res, next) => {
   if (!AiService.isAvailable) {
-    return next(new AppError('AI Career Copilot service is currently misconfigured. Gemini API key missing.', 500));
+    throw new AppError();
   }
 
   const user = await User.findById(req.user._id);
-  if (!user) return next(new AppError('User not found', 404));
+  if (!user) throw new AppError();
 
   const systemPrompt =
     'You are an AI Academic and Career Copilot. Analyze the student profile and output a JSON object only. ' +
@@ -42,16 +42,16 @@ export const getCareerRecommendations = asyncHandler(async (req, res, next) => {
 
 export const handleCareerChat = asyncHandler(async (req, res, next) => {
   if (!AiService.isAvailable) {
-    return next(new AppError('AI Career Copilot service is currently misconfigured. Gemini API key missing.', 500));
+    throw new AppError();
   }
 
   const { query } = req.body;
   if (!query || query.trim() === '') {
-    return next(new AppError('Query string is required.', 400));
+    throw new AppError();
   }
 
   const user = await User.findById(req.user._id);
-  if (!user) return next(new AppError('User not found', 404));
+  if (!user) throw new AppError();
 
   const systemPrompt = `You are the ProConnect AI Career and Academic Copilot. Your role is to guide students on their educational and professional paths.
 You have access to the student's profile context. Tailor all advice to their profile details.

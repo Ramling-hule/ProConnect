@@ -5,23 +5,35 @@ import AppError from "../utils/AppError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const createReview = asyncHandler(async (req, res, next) => {
-  const { bookingId, rating, reviewText, isAnonymous } = req.body;
+  const { mentorId, bookingId, rating, reviewText, comment, isAnonymous } = req.body;
 
-  const booking = await Booking.findById(bookingId);
-  if (!booking) return next(new AppError("Booking not found", 404));
+  const actualComment = comment || reviewText;
+  const actualMentorId = mentorId;
 
-  if (booking.user.toString() !== req.user._id.toString()) {
-    return next(new AppError("You can only review your own bookings", 403));
+  if (!actualMentorId || !rating || !actualComment) {
+    return next(new AppError('Mentor ID, rating, and review text are required.', 400));
   }
-  if (booking.status !== "Completed") {
+  const booking = await Booking.findOne({
+    user: req.user._id,
+    mentor: actualMentorId,
+    status: 'Completed'
+  });
+
+  if (!booking) {
+    return next(new AppError('You can only leave a review if you have a completed session with this mentor.', 403));
+  }
+
+  const existingReview = await Review.findOne({ booking: booking._id });
+  if (existingReview) {
+    return next(new AppError('You have already left a review for your session.', 409));
   }
 
   const review = new Review({
     user: req.user._id,
-    mentor: booking.mentor,
-    booking: bookingId,
+    mentor: actualMentorId,
+    booking: booking._id,
     rating,
-    reviewText,
+    reviewText: actualComment,
     isAnonymous
   });
 

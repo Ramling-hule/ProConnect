@@ -119,7 +119,7 @@ export default function ChatWindow() {
         { 
             sender: currentUserId, 
             text: message, 
-            status: 'sent', // default client status until ack
+            status: 'sent',
             createdAt: new Date().toISOString() 
         }
     ]);

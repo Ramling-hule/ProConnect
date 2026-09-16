@@ -21,7 +21,7 @@ class AuthService {
       },
       env.jwtSecret,
       { 
-        expiresIn: "15m",
+        expiresIn: env.jwtExpire,
         issuer: "proconnect-api",
         audience: "proconnect-client",
         jwtid: crypto.randomUUID()
@@ -49,7 +49,7 @@ class AuthService {
     return { accessToken, rawRefreshToken, sessionId };
   }
 
-  async register({ name, username, institute, email, password }) {
+  async register({ name, username, institute, email, password, role }) {
     const existingUser = await User.findOne({ email });
     if (existingUser && existingUser.isVerified) {
       const error = new Error("An account with this email already exists.");
@@ -60,10 +60,18 @@ class AuthService {
     const otp = crypto.randomInt(1000, 9999).toString();
     const otpHash = sha256(otp);
 
+    const validRoles = ["student", "admin", "institute", "mentor", "STUDENT", "MENTOR", "ADMIN"];
+    const userRole = validRoles.includes(role) ? role : "student";
+
     if (existingUser && !existingUser.isVerified) {
+      existingUser.name = name;
+      existingUser.username = username;
+      existingUser.institute = institute;
+      existingUser.password = password;
       existingUser.verificationOtpHash = otpHash;
       existingUser.verificationOtpExpires = Date.now() + 10 * 60 * 1000;
       existingUser.verificationAttempts = 0;
+      existingUser.role = userRole;
       await EmailService.sendOtpEmail(email, otp);
       await existingUser.save();
       return existingUser._id;
@@ -75,6 +83,7 @@ class AuthService {
       institute,
       email,
       password,
+      role: userRole,
       isVerified: false,
       verificationOtpHash: otpHash,
       verificationOtpExpires: Date.now() + 10 * 60 * 1000,
@@ -125,11 +134,13 @@ class AuthService {
     return user;
   }
 
-  async login({ email, password, deviceInfo }) {
+  async login({ email, password, role, deviceInfo }) {
     const user = await User.findOne({ email });
-    if (!user) throw { status: 401, message: "Invalid email or password" };
-    if (!user.isVerified) {
-      throw { status: 403, message: "Please verify your email before logging in. Check your inbox for the OTP." };
+    if (!user || !user.isVerified) {
+      throw { status: 401, message: "Account not found. Please create your account first." };
+    }
+    if (role && user.role && user.role.toLowerCase() !== role.toLowerCase()) {
+       throw { status: 403, message: `Account exists, but not as a ${role}.` };
     }
 
     if (user.lockedUntil && user.lockedUntil > Date.now()) {
@@ -294,32 +305,31 @@ class AuthService {
 
   async forgotPassword(email) {
     const user = await User.findOne({ email });
-    if (!user) return null; // Prevent enumeration
+    if (!user) return null;
 
-    const resetToken = crypto.randomBytes(32).toString("hex");
-    const hash = sha256(resetToken);
+    const otp = crypto.randomInt(1000, 9999).toString();
+    const hash = sha256(otp);
 
     user.passwordResetTokenHash = hash;
     user.passwordResetExpires = Date.now() + 15 * 60 * 1000;
     await user.save();
 
-    const resetUrl = `${env.clientUrl}/reset-password?token=${resetToken}&userId=${user._id}`;
-    await EmailService.sendPasswordResetEmail(email, resetUrl);
+    await EmailService.sendPasswordResetOtpEmail(email, otp);
     
     return user;
   }
 
-  async resetPassword({ userId, token, password }) {
-    const user = await User.findById(userId);
+  async resetPassword({ email, otp, password }) {
+    const user = await User.findOne({ email });
     if (!user) throw { status: 400, message: "Invalid request" };
 
     if (!user.passwordResetTokenHash || user.passwordResetExpires < Date.now()) {
-      throw { status: 400, message: "Reset token expired or invalid" };
+      throw { status: 400, message: "Reset OTP expired or invalid" };
     }
 
-    const tokenHash = sha256(token);
-    if (tokenHash !== user.passwordResetTokenHash) {
-      throw { status: 400, message: "Invalid reset token" };
+    const otpHash = sha256(otp);
+    if (otpHash !== user.passwordResetTokenHash) {
+      throw { status: 400, message: "Invalid reset OTP" };
     }
 
     user.password = password;

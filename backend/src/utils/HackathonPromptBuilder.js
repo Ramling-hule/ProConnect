@@ -1,15 +1,16 @@
 class HackathonPromptBuilder {
-  teamSuggestions(hackathon) {
+  teamSuggestions(hackathon, userSkills) {
     const tracks = hackathon.tracks?.map(t => t.name).join(', ') || 'General';
-    const skills = hackathon.skills?.join(', ') || 'Any';
+    const requiredSkills = hackathon.skills?.join(', ') || 'Any';
+    const userSkillsStr = userSkills?.join(', ') || 'None';
     return `You are an AI system that matches hackathon participants.
 Hackathon: "${hackathon.title}"
 Tracks: ${tracks}
-Required skills: ${skills}
+Hackathon Required skills: ${requiredSkills}
+User's current skills: ${userSkillsStr}
 
-Generate 5 ideal complementary team member profiles (not real users) that would form a balanced team.
-For each profile, specify: role, top 3 skills, and why they complement the team.
-Return ONLY a valid JSON array: [{ "role": string, "skills": string[], "reason": string }]`;
+Analyze the user's skills against the hackathon's required skills and identify exactly what skills or roles are missing to form a balanced team.
+Return ONLY a valid JSON object: { "gapDescription": "A 1-2 sentence description of what the team is missing", "missingSkills": ["skill1", "skill2"] }`;
   }
   skillGapAnalysis(hackathon, teamSkills) {
     return `Analyze this hackathon team's skill coverage.

@@ -2,10 +2,10 @@ import mongoose from 'mongoose';
 
 const SubmissionVersionSchema = new mongoose.Schema({
   githubUrl:  { type: String, default: null },
-  demoVideo:  { type: String, default: null }, // Cloudinary URL or YouTube link
-  pptUrl:     { type: String, default: null }, // Cloudinary URL
-  pdfUrl:     { type: String, default: null }, // Cloudinary URL
-  liveUrl:    { type: String, default: null }, // Deployed URL
+  demoVideo:  { type: String, default: null },
+  pptUrl:     { type: String, default: null },
+  pdfUrl:     { type: String, default: null },
+  liveUrl:    { type: String, default: null },
   driveLink:  { type: String, default: null },
   notes:      { type: String, default: null },
   submittedBy:{ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -16,7 +16,7 @@ const SubmissionVersionSchema = new mongoose.Schema({
 const hackathonSubmissionSchema = new mongoose.Schema({
   hackathon: { type: mongoose.Schema.Types.ObjectId, ref: 'Hackathon', required: true },
   team:      { type: mongoose.Schema.Types.ObjectId, ref: 'HackathonTeam', required: true },
-  track:     { type: String, default: null }, // which track this submission is for
+  track:     { type: String, default: null },
   githubUrl:  { type: String, default: null },
   demoVideo:  { type: String, default: null },
   pptUrl:     { type: String, default: null },
@@ -25,7 +25,7 @@ const hackathonSubmissionSchema = new mongoose.Schema({
   driveLink:  { type: String, default: null },
   notes:      { type: String, default: null },
   isDraft:   { type: Boolean, default: true },
-  isLocked:  { type: Boolean, default: false }, // true after deadline passes
+  isLocked:  { type: Boolean, default: false },
   scores: [{
     judge:    { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     score:    { type: Number },
@@ -41,9 +41,9 @@ const hackathonSubmissionSchema = new mongoose.Schema({
   finalSubmittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
 
 }, { timestamps: true });
-hackathonSubmissionSchema.index({ hackathon: 1, team: 1 }, { unique: true }); // one submission per team
+hackathonSubmissionSchema.index({ hackathon: 1, team: 1 }, { unique: true });
 hackathonSubmissionSchema.index({ hackathon: 1, isWinner: 1 });
-hackathonSubmissionSchema.index({ hackathon: 1, totalScore: -1 }); // leaderboard
+hackathonSubmissionSchema.index({ hackathon: 1, totalScore: -1 });
 hackathonSubmissionSchema.index({ team: 1 });
 
 export default mongoose.model('HackathonSubmission', hackathonSubmissionSchema);

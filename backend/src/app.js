@@ -10,10 +10,12 @@ import { env } from './config/env.js';
 import { registerRoutes } from './routes/index.js';
 import { apiLimiter } from './middlewares/rateLimiter.js';
 import { notFound, errorHandler } from './middlewares/errorHandler.js';
+import paymentWebhookRoutes from './routes/paymentWebhookRoutes.js';
 
 const app = express();
 const allowedOrigins = [env.clientUrl, 'http://localhost:3001'];
 const sessionStore = new RedisStore({ client: redisClient });
+app.use('/api/payments/webhook', paymentWebhookRoutes);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

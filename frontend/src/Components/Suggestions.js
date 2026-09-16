@@ -49,7 +49,6 @@ export default function Suggestions() {
            }
         }
       } catch (err) {
-        // Silently fail to avoid Next.js overlay
       } finally {
         setLoading(false);
       }

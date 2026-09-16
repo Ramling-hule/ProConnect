@@ -14,7 +14,7 @@ export default function ProfilePreviewModal({ isOpen, onClose, user }) {
           </button>
           
           <div className="flex gap-4 items-start">
-            <img src={user.profilePicture || "/default-avatar.png"} alt={user.name} className="w-20 h-20 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-sm" />
+            <img src={user.profilePicture || "/default-avatar.svg"} alt={user.name} className="w-20 h-20 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-sm" />
             <div className="mt-2">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white">{user.name}</h2>
               <p className="text-sm font-semibold text-brand-primary">@{user.username}</p>

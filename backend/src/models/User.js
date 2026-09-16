@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import { normalizeSkills } from "../utils/skillNormalizer.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -10,7 +11,7 @@ const userSchema = new mongoose.Schema(
     institute: { type: String, required: true },
     role: {
       type: String,
-      enum: ["student", "admin", "institute", "mentor"],
+      enum: ["student", "admin", "institute", "mentor", "STUDENT", "MENTOR", "ADMIN"],
       default: "student",
     },
     isVerified: { type: Boolean, default: false },
@@ -55,15 +56,15 @@ const userSchema = new mongoose.Schema(
     pinnedProjects: [{ type: mongoose.Schema.Types.Mixed }],
     portfolioGallery: [{ type: String }],
     availability: { type: String, default: "Available" },
-    preferredRoles: [{ type: String }], // e.g. Backend, Frontend, AI
+    preferredRoles: [{ type: String }],
     openToWork: { type: Boolean, default: false },
     openToCompete: { type: Boolean, default: false },
     visibility: { type: String, enum: ['PUBLIC', 'PRIVATE', 'CONNECTIONS_ONLY'], default: 'PUBLIC' },
-    isOrganizer: { type: Boolean, default: false }, // Hackathon organizer permission flag
+    isOrganizer: { type: Boolean, default: false },
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     instituteName: { type: String },
-    verificationCode: { type: String }, // Keep for backward compatibility
-    verificationCodeExpires: { type: Date }, // Keep for backward compatibility
+    verificationCode: { type: String },
+    verificationCodeExpires: { type: Date },
     verificationOtpHash: { type: String },
     verificationOtpExpires: { type: Date },
     verificationAttempts: { type: Number, default: 0 },
@@ -83,15 +84,29 @@ const userSchema = new mongoose.Schema(
 userSchema.index({ verificationOtpHash: 1 }, { sparse: true });
 userSchema.index({ passwordResetTokenHash: 1 }, { sparse: true });
 
-
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+});
+userSchema.pre("save", function () {
+  if (this.isModified("skills")) {
+    this.skills = normalizeSkills(this.skills);
+  }
+});
+userSchema.pre("findOneAndUpdate", function () {
+  const update = this.getUpdate();
+  if (update && update.skills) {
+    update.skills = normalizeSkills(update.skills);
+  }
+  if (update && update.$set && update.$set.skills) {
+    update.$set.skills = normalizeSkills(update.$set.skills);
+  }
 });
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-export default mongoose.model("User", userSchema);
+const User = mongoose.model("User", userSchema);
+export default User;

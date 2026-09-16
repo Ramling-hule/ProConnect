@@ -18,7 +18,7 @@ export default function HackathonScrollNav({ hackathon }) {
         const el = document.getElementById(section.id);
         if (el) {
           const rect = el.getBoundingClientRect();
-          if (rect.top <= 150) { // Offset for sticky headers
+          if (rect.top <= 150) {
             current = section.id;
           }
         }
@@ -27,7 +27,7 @@ export default function HackathonScrollNav({ hackathon }) {
     };
 
     window.addEventListener('scroll', handleScroll);
-    handleScroll(); // Initial check
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 

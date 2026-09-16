@@ -29,7 +29,10 @@ function LoginContent() {
 
   useEffect(() => {
     if (user && !mfaRequired) {
-      if (user.role?.toLowerCase() === 'mentor' && callbackUrl === '/dashboard') {
+      const role = user.role?.toLowerCase();
+      if (role === 'admin') {
+        router.push('/admin');
+      } else if (role === 'mentor' && callbackUrl === '/dashboard') {
         router.push('/mentor-dashboard');
       } else {
         router.push(callbackUrl);
@@ -90,7 +93,10 @@ function LoginContent() {
       });
       dispatch(authSuccess(data));
       toast.success('MFA verification successful!');
-      if (data.user?.role?.toLowerCase() === 'mentor' && callbackUrl === '/dashboard') {
+      const role = data.user?.role?.toLowerCase();
+      if (role === 'admin') {
+        router.push('/admin');
+      } else if (role === 'mentor' && callbackUrl === '/dashboard') {
         router.push('/mentor-dashboard');
       } else {
         router.push(callbackUrl);
@@ -177,6 +183,17 @@ function LoginContent() {
                       className="accent-brand-primary"
                     />
                     <span className="text-sm font-medium">Mentor</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="role" 
+                      value="admin" 
+                      checked={formData.role === 'admin'}
+                      onChange={handleChange}
+                      className="accent-orange-500"
+                    />
+                    <span className="text-sm font-medium text-orange-600 dark:text-orange-400">Admin</span>
                   </label>
                 </div>
               </div>

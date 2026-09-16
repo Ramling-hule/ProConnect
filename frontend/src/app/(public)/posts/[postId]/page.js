@@ -63,7 +63,7 @@ export default function PublicPostPage() {
         <div className="p-4 flex items-center gap-3">
           <Link href={`/people/${post.author?.username}`}>
             <img 
-              src={post.author?.profilePicture || '/default-avatar.png'} 
+              src={post.author?.profilePicture || '/default-avatar.svg'} 
               alt={post.author?.name} 
               className="w-12 h-12 rounded-full object-cover"
             />

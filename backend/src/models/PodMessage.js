@@ -23,7 +23,7 @@ const podMessageSchema = new mongoose.Schema({
   threadId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'PodMessage',
-    sparse: true // Allows multiple nulls, indexed for thread lookups
+    sparse: true
   },
   isAnnouncement: {
     type: Boolean,

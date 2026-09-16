@@ -37,7 +37,7 @@ const peerReviewSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  sentimentScore: Number // Used for Gamification/Learning Score
+  sentimentScore: Number
 }, {
   timestamps: true
 });

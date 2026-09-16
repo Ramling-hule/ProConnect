@@ -5,23 +5,24 @@ import logger from "../utils/logger.js";
 class EmailService {
   constructor() {
     this.transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: env.smtpHost,
+      port: env.smtpPort,
       auth: {
-        user: env.emailUser,
-        pass: env.emailPass,
+        user: env.smtpUser,
+        pass: env.smtpPass,
       },
     });
     this.transporter.verify((error) => {
       if (error) {
         logger.error("EmailService: SMTP connection failed — emails will NOT send", {
           smtpError  : error.message,
-          smtpCode   : error.code,       // e.g. EAUTH, ECONNECTION
-          smtpCommand: error.command,    // e.g. AUTH
-          emailUser  : env.emailUser,
-          hint       : "Make sure EMAIL_PASS is a Gmail App Password (not your account password). Generate one at: https://myaccount.google.com/apppasswords",
+          smtpCode   : error.code,
+          smtpCommand: error.command,
+          smtpUser   : env.smtpUser,
+          hint       : "Make sure SMTP_PASS is correctly set (e.g. your Brevo SMTP key).",
         });
       } else {
-        logger.info("EmailService: SMTP connection verified ✓", { emailUser: env.emailUser });
+        logger.info("EmailService: SMTP connection verified ✓", { smtpUser: env.smtpUser });
       }
     });
   }
@@ -29,7 +30,7 @@ class EmailService {
   async sendEmail({ to, subject, text, html }) {
     try {
       const info = await this.transporter.sendMail({
-        from: `"ProConnect" <${env.emailUser}>`,
+        from: `"ProConnect" <${env.emailFrom || env.smtpUser}>`,
         to,
         subject,
         text,
@@ -40,15 +41,15 @@ class EmailService {
       logger.error("EmailService: Failed to send email", {
         to,
         subject,
-        smtpError  : error.message,
-        smtpCode   : error.code,       // e.g. EAUTH = bad credentials
+        smtpError: error.message,
+        smtpCode: error.code,
         smtpCommand: error.command,
         responseCode: error.responseCode,
-        response   : error.response,   // Full SMTP server response
+        response: error.response,
       });
       const friendly = new Error("Email sending failed");
       friendly.status = 503;
-      friendly.cause  = error; // Preserve original for deeper debugging
+      friendly.cause = error;
       throw friendly;
     }
   }
@@ -84,6 +85,24 @@ class EmailService {
             Reset Password
           </a>
           <p style="color:#666;font-size:0.875rem;margin-top:16px">If you didn't request this, ignore this email.</p>
+        </div>
+      `,
+    });
+  }
+
+  async sendPasswordResetOtpEmail(to, otp) {
+    await this.sendEmail({
+      to,
+      subject: "ProConnect — Password Reset OTP",
+      text: `Your password reset OTP is: ${otp}. It expires in 15 minutes.`,
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:auto">
+          <h2 style="color:#4f46e5">ProConnect — Reset your password</h2>
+          <p>Use the code below to reset your password:</p>
+          <div style="font-size:2rem;font-weight:bold;letter-spacing:8px;color:#4f46e5;padding:16px 0">
+            ${otp}
+          </div>
+          <p style="color:#666;font-size:0.875rem">This code expires in <strong>15 minutes</strong>. If you didn't request this, ignore this email.</p>
         </div>
       `,
     });

@@ -24,7 +24,7 @@ const hackathonRegistrationSchema = new mongoose.Schema({
   submittedAt: { type: Date, default: Date.now },
 
 }, { timestamps: true });
-hackathonRegistrationSchema.index({ hackathon: 1, user: 1 }, { unique: true }); // no double registration
+hackathonRegistrationSchema.index({ hackathon: 1, user: 1 }, { unique: true });
 hackathonRegistrationSchema.index({ hackathon: 1, status: 1 });
 hackathonRegistrationSchema.index({ user: 1, status: 1 });
 hackathonRegistrationSchema.index({ hackathon: 1, waitlistPosition: 1 }, { sparse: true });

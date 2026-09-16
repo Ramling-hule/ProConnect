@@ -50,7 +50,7 @@ class CacheService {
       return result === 'OK';
     } catch (err) {
       console.error('Redis acquireLock error:', err.message);
-      return true; // fail-open
+      return true;
     }
   }
   async releaseLock(key) {

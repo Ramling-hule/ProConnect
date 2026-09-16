@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Trophy, Calendar, Users, Globe, Wifi, Cpu, ChevronRight, Loader } from 'lucide-react';
+import { Trophy, Calendar, Users, Globe, Wifi, Cpu, ChevronRight, Loader, Plus } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6001';
 
@@ -61,6 +61,9 @@ export default function PublicHackathonsPage() {
               Register, form a team, and compete in the latest hackathons across AI, Web3, and more.
             </p>
           </div>
+          <Link href="/hackathons/create" className="hidden sm:flex px-4 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 items-center gap-2">
+            <Plus size={18} /> Create Hackathon
+          </Link>
         </div>
 
         {loading ? (
@@ -73,7 +76,7 @@ export default function PublicHackathonsPage() {
               <Link
                 key={h._id || h.id}
                 href={`/hackathons/${h.slug}`}
-                className="group bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
+                className="group bg-white dark:bg-[#0C1323] border border-slate-200 dark:border-white/[0.06] rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
               >
                 {h.banner ? (
                   <img src={h.banner} alt={h.title} className="w-full h-40 object-cover" />
@@ -91,10 +94,10 @@ export default function PublicHackathonsPage() {
                   <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">{h.tagline || h.description}</p>
                   <div className="flex flex-wrap gap-1 mb-3">
                     {(h.skills ?? []).slice(0, 3).map(s => (
-                      <span key={s} className="text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full">{s}</span>
+                      <span key={s} className="text-xs bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full">{s}</span>
                     ))}
                   </div>
-                  <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-3 border-t border-slate-100 dark:border-slate-700">
+                  <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-3 border-t border-slate-100 dark:border-white/[0.06]">
                     <span className="flex items-center gap-1"><Calendar size={12} /> {new Date(h.timeline?.hackathonStart).toLocaleDateString()}</span>
                     <span className="flex items-center gap-1"><Users size={12} /> {h.registrationCount} registered</span>
                     <span className={`font-bold ${h.isFree ? 'text-green-600' : 'text-slate-700 dark:text-slate-300'}`}>
@@ -113,7 +116,7 @@ export default function PublicHackathonsPage() {
           <div className="flex justify-center gap-2 mt-12">
             {Array.from({ length: pagination.pages }, (_, i) => i + 1).map(p => (
               <Link key={p} href={`/hackathons?page=${p}`}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${p === page ? 'bg-blue-600 text-white' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'}`}>
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${p === page ? 'bg-blue-600 text-white' : 'bg-white dark:bg-[#0C1323] border border-slate-200 dark:border-white/[0.06] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}>
                 {p}
               </Link>
             ))}

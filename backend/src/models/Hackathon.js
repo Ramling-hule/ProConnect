@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const PrizeSchema = new mongoose.Schema({
-  rank:        { type: String, required: true }, // e.g., '1st', '2nd', 'Best UI'
+  rank:        { type: String, required: true },
   title:       { type: String, required: true },
   amount:      { type: Number, default: 0 },
   description: { type: String },
@@ -15,7 +15,7 @@ const TrackSchema = new mongoose.Schema({
 
 const JudgingCriteriaSchema = new mongoose.Schema({
   criterion: { type: String, required: true },
-  weight:    { type: Number, default: 0 }, // percentage weight (0-100)
+  weight:    { type: Number, default: 0 },
 }, { _id: false });
 
 const FaqSchema = new mongoose.Schema({
@@ -35,14 +35,15 @@ const hackathonSchema = new mongoose.Schema({
   slug:        { type: String, required: true, unique: true, lowercase: true },
   description: { type: String, required: true },
   tagline:     { type: String },
-  banner:      { type: String },   // Cloudinary URL — uses existing upload service
+  banner:      { type: String },
   organizer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  category:   { type: String, required: true },              // e.g., 'Web Dev', 'AI/ML', 'Blockchain'
-  skills:     [{ type: String }],                            // skill tags for search
+  judges:    [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  category:   { type: String, required: true },
+  skills:     [{ type: String }],
   mode:       { type: String, enum: ['online', 'offline', 'hybrid'], default: 'online' },
   difficulty: { type: String, enum: ['beginner', 'intermediate', 'advanced', 'open'], default: 'open' },
   eligibility: {
-    college:      { type: String },    // restrict by college name (empty = open to all)
+    college:      { type: String },
     minYear:      { type: Number },
     maxYear:      { type: Number },
     openToPublic: { type: Boolean, default: true },
@@ -57,13 +58,20 @@ const hackathonSchema = new mongoose.Schema({
   minTeamSize: { type: Number, default: 1 },
   maxTeamSize: { type: Number, default: 4 },
   soloAllowed: { type: Boolean, default: true },
-  maxParticipants:   { type: Number, default: null },  // null = unlimited
-  registrationCount: { type: Number, default: 0 },     // denormalized for fast queries
+  maxParticipants:   { type: Number, default: null },
+  registrationCount: { type: Number, default: 0 },
   waitlistEnabled:   { type: Boolean, default: false },
-  approvalRequired:  { type: Boolean, default: false }, // organizer must approve registrations
+  waitlistCount:     { type: Number, default: 0 },
+  approvalRequired:  { type: Boolean, default: false },
   isFree:          { type: Boolean, default: true },
-  registrationFee: { type: Number, default: 0 },       // in INR, ignored if isFree
+  registrationFee: { type: Number, default: 0 },
+  feeModel:        { type: String, enum: ['per_team', 'per_participant'], default: 'per_participant' },
   currency:        { type: String, default: 'INR' },
+  refundPolicy: {
+    fullRefundBeforeDate: { type: Date },
+    partialRefundPercent: { type: Number, min: 0, max: 100 },
+    noRefundAfterDate: { type: Date }
+  },
   tracks:          [TrackSchema],
   prizes:          [PrizeSchema],
   judgingCriteria: [JudgingCriteriaSchema],
@@ -72,7 +80,7 @@ const hackathonSchema = new mongoose.Schema({
   rules:           [{ type: String }],
   resources:       [{ url: String, label: String }],
   certificateEnabled: { type: Boolean, default: false },
-  certificateTemplate:{ type: String }, // Cloudinary URL
+  certificateTemplate:{ type: String },
   status:     { type: String, enum: ['draft', 'published', 'ongoing', 'completed', 'cancelled'], default: 'draft' },
   visibility: { type: String, enum: ['public', 'private', 'unlisted'], default: 'public' },
   isFeatured: { type: Boolean, default: false },

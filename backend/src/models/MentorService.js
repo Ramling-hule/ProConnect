@@ -3,9 +3,9 @@ import mongoose from "mongoose";
 const mentorServiceSchema = new mongoose.Schema(
   {
     mentor: { type: mongoose.Schema.Types.ObjectId, ref: "Mentor", required: true },
-    title: { type: String, required: true }, // e.g. "30 Minute Career Guidance"
+    title: { type: String, required: true },
     description: { type: String, required: true },
-    duration: { type: Number, required: true }, // in minutes
+    duration: { type: Number, required: true },
     price: { type: Number, required: true },
     currency: { type: String, default: "INR" },
     tags: [{ type: String }],

@@ -13,7 +13,7 @@ const setRefreshCookie = (res, rawRefreshToken) => {
     secure:   env.nodeEnv === "production",
     sameSite: "lax",
     path:     "/api/auth/refresh-token",
-    maxAge:   30 * 24 * 60 * 60 * 1000, // 30 days
+    maxAge:   30 * 24 * 60 * 60 * 1000,
   });
 };
 const formatUserResponse = (user) => ({
@@ -22,6 +22,7 @@ const formatUserResponse = (user) => ({
   username:   user.username,
   email:      user.email,
   institute:  user.institute,
+  role:       user.role,
 });
 export const registerUser = asyncHandler(async (req, res, next) => {
   try {
@@ -35,7 +36,7 @@ export const registerUser = asyncHandler(async (req, res, next) => {
         reason: "Email already exists",
       });
     }
-    return next(new AppError(error.message, error.status || 500));
+    throw new AppError(error.message, error.status || 500);
   }
 });
 export const verifyEmail = asyncHandler(async (req, res, next) => {
@@ -44,7 +45,7 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
     await AuditService.log(user._id, "EMAIL_VERIFICATION_SUCCESS", req);
     res.status(200).json({ message: "Account verified successfully. Please login." });
   } catch (error) {
-    return next(new AppError(error.message, error.status || 500));
+    throw new AppError(error.message, error.status || 500);
   }
 });
 export const loginUser = asyncHandler(async (req, res, next) => {
@@ -63,7 +64,7 @@ export const loginUser = asyncHandler(async (req, res, next) => {
       await AuditService.log(error.userId, "LOGIN_FAILURE", req);
       if (error.locked) await AuditService.log(error.userId, "ACCOUNT_LOCKOUT", req);
     }
-    return next(new AppError(error.message, error.status || 500));
+    throw new AppError(error.message, error.status || 500);
   }
 });
 export const rotateRefreshToken = asyncHandler(async (req, res, next) => {
@@ -80,13 +81,13 @@ export const rotateRefreshToken = asyncHandler(async (req, res, next) => {
       await AuditService.log(error.user._id, "REFRESH_TOKEN_REUSE_ATTEMPT", req, { tokenHash: error.tokenHash });
       res.clearCookie("refreshToken");
     }
-    return next(new AppError(error.message, error.status || 500));
+    throw new AppError(error.message, error.status || 500);
   }
 });
 export const forgotPassword = asyncHandler(async (req, res, next) => {
   const user = await AuthService.forgotPassword(req.body.email);
   if (user) await AuditService.log(user._id, "PASSWORD_RESET_REQUESTED", req);
-  res.status(200).json({ message: "If that email exists, a reset link has been sent." });
+  res.status(200).json({ message: "If that email exists, an OTP has been sent." });
 });
 export const resetPassword = asyncHandler(async (req, res, next) => {
   try {
@@ -94,7 +95,7 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
     await AuditService.log(user._id, "PASSWORD_RESET_COMPLETED", req);
     res.status(200).json({ message: "Password updated successfully." });
   } catch (error) {
-    return next(new AppError(error.message, error.status || 500));
+    throw new AppError(error.message, error.status || 500);
   }
 });
 export const logoutUser = asyncHandler(async (req, res, next) => {
@@ -125,7 +126,7 @@ export const verifyMfaLogin = asyncHandler(async (req, res, next) => {
     res.json({ accessToken: result.accessToken, user: formatUserResponse(result.user) });
   } catch (error) {
     if (error.userId) await AuditService.log(error.userId, "MFA_LOGIN_FAILURE", req);
-    return next(new AppError(error.message, error.status || 401));
+    throw new AppError(error.message, error.status || 401);
   }
 });
 export const googleSignIn = asyncHandler(async (req, res, next) => {
@@ -143,6 +144,6 @@ export const googleSignIn = asyncHandler(async (req, res, next) => {
     await AuditService.log(result.user._id, "GOOGLE_LOGIN_SUCCESS", req, { sessionId: result.sessionId });
     res.json({ accessToken: result.accessToken, user: formatUserResponse(result.user) });
   } catch (error) {
-    return next(new AppError(error.message, error.status || 500));
+    throw new AppError(error.message, error.status || 500);
   }
 });

@@ -231,8 +231,8 @@ export default function ConnectionsView() {
                 </div>
                 <button
                   onClick={(e) => {
-                    e.stopPropagation(); // Prevent opening profile modal
-                    dispatch(openChat(conn)); // Open Chat with this connection
+                    e.stopPropagation();
+                    dispatch(openChat(conn));
                   }}
                   className="flex items-center gap-1 bg-brand-primary text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors"
                 >

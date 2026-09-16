@@ -31,7 +31,7 @@ export default function JoinPodButton({ podId, isFull, status }) {
       if (!res.ok) throw new Error(data.message || 'Failed to join pod');
       
       toast.success(data.message || 'Joined pod successfully!');
-      router.refresh(); // Refresh the Server Component to update UI member count
+      router.refresh();
     } catch (err) {
       toast.error(err.message);
     } finally {

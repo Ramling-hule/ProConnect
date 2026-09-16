@@ -10,6 +10,6 @@ const InterestRequestSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 InterestRequestSchema.index({ teammateRequest: 1, status: 1 });
-InterestRequestSchema.index({ user: 1, hackathon: 1 }, { unique: true }); // A user can only show interest once per hackathon team request
+InterestRequestSchema.index({ teammateRequest: 1, user: 1 }, { unique: true });
 
 export default mongoose.model('InterestRequest', InterestRequestSchema);

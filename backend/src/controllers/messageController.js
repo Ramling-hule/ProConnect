@@ -1,37 +1,20 @@
 import mongoose from 'mongoose';
-import Message from '../models/Message.js';
+import MessageService from '../services/message.service.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import AppError from '../utils/AppError.js';
+
 export const getDirectMessages = asyncHandler(async (req, res, next) => {
   const { userId, otherId } = req.params;
   const { cursor, limit = 50 } = req.query;
+  if (req.user && req.user._id.toString() !== userId && req.user.role?.toLowerCase() !== 'admin') {
+     throw new AppError('Unauthorized access to messages', 403);
+  }
 
-  if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(otherId)) {
-    return next(new AppError('Invalid user ID format.', 400));
-  }
-  const query = {
-    $or: [
-      { sender: userId, receiver: otherId },
-      { sender: otherId, receiver: userId },
-    ],
-  };
-  if (cursor) {
-    if (!mongoose.Types.ObjectId.isValid(cursor)) {
-      return next(new AppError('Invalid cursor format.', 400));
-    }
-    query._id = { $lt: cursor }; 
-  }
-  const messages = await Message.find(query)
-    .sort({ _id: -1 }) // -1 gets the most recent messages right before the cursor
-    .limit(Number(limit));
-  const nextCursor = messages.length === Number(limit) ? messages[messages.length - 1]._id : null;
-  const chronologicalMessages = messages.reverse();
+  const result = await MessageService.getDirectMessages(userId, otherId, cursor, limit);
 
   res.json({ 
     success: true, 
-    data: chronologicalMessages,
-    nextCursor,
-    hasMore: !!nextCursor
+    ...result
   });
 });
 
@@ -40,27 +23,20 @@ export const searchMessages = asyncHandler(async (req, res, next) => {
   const { q } = req.query;
 
   if (!q || q.trim() === '') {
-    return next(new AppError('Search query is required.', 400));
+    throw new AppError('Search query is required', 400);
   }
-
-  if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(otherId)) {
-    return next(new AppError('Invalid user ID format.', 400));
+  if (req.user && req.user._id.toString() !== userId && req.user.role?.toLowerCase() !== 'admin') {
+     throw new AppError('Unauthorized access to messages', 403);
   }
-
-  const query = {
-    $or: [
-      { sender: userId, receiver: otherId },
-      { sender: otherId, receiver: userId },
-    ],
-    text: { $regex: q, $options: 'i' }
-  };
-
-  const messages = await Message.find(query)
-    .sort({ createdAt: 1 })
-    .populate('sender', 'name profilePicture');
+  
+  const result = await MessageService.getDirectMessages(userId, otherId, null, 1000);
+  
+  const filteredMessages = result.data.filter(msg => 
+    msg.text && msg.text.toLowerCase().includes(q.toLowerCase())
+  );
 
   res.json({
     success: true,
-    data: messages
+    data: filteredMessages
   });
 });

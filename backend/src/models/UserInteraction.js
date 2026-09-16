@@ -19,13 +19,13 @@ const userInteractionSchema = new mongoose.Schema({
     required: true
   },
   context: {
-    query: String, // Search query if applicable
-    recommendationVersion: String, // e.g., 'v1-heuristic', 'v2-xgboost'
-    rankPosition: Number, // Where the mentor appeared in the list
-    source: String // e.g., 'home_page_trending', 'search_results'
+    query: String,
+    recommendationVersion: String,
+    rankPosition: Number,
+    source: String
   },
-  sessionDurationMinutes: Number, // For COMPLETE_SESSION action
-  rating: Number // Explicit feedback if provided
+  sessionDurationMinutes: Number,
+  rating: Number
 }, {
   timestamps: true
 });

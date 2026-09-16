@@ -37,9 +37,6 @@ export default function DiscoverView({ initialUsers = [] }) {
         setLoading(false);
       }
     };
-    
-    // Always fetch client-side if user auth state resolves (to get personalized status like pending/connected)
-    // or if initialUsers was empty.
     if (user || initialUsers.length === 0) {
       fetchUsers();
     } else {
@@ -84,7 +81,7 @@ export default function DiscoverView({ initialUsers = [] }) {
             recipientId: receiverId,
             type: "connection_request",
             message: "sent you a connection request.",
-            link: "/network", // Where clicking the notif takes them
+            link: "/network",
           }),
         });
       }
@@ -117,7 +114,6 @@ export default function DiscoverView({ initialUsers = [] }) {
         />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
 
         {user && users?.length === 0 && !loading && (
           <p className="col-span-2 text-center text-slate-400 py-10">
@@ -201,7 +197,7 @@ export default function DiscoverView({ initialUsers = [] }) {
       </div>
       <UserProfileModal
         user={selectedUser}
-        conn={selectedUser} // Passing the user object as connection data
+        conn={selectedUser}
         isOpen={!!selectedUser}
         onClose={() => setSelectedUser(null)}
       />

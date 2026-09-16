@@ -4,9 +4,6 @@ import { useSelector, useDispatch } from "react-redux";
 import { Heart, MessageCircle, Share2, MoreHorizontal, Send, FileText, File, Download, ExternalLink } from "lucide-react";
 import { openAuthModal } from "@/redux/features/authSlice";
 import { API_BASE_URL } from "@/utils/config";
-/* ─────────────────────────────────────────────────────────
-   MediaRenderer — renders the right element for each media type
-───────────────────────────────────────────────────────── */
 function MediaRenderer({ post, isDark }) {
   const bgMuted = isDark ? "rgba(0,0,0,0.3)" : "#F0F4FF";
   const legacyImage = post.image && !post.media;
@@ -70,7 +67,7 @@ function MediaRenderer({ post, isDark }) {
           className="flex items-center justify-between px-4 py-2.5"
           style={{
             borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
-            background: isDark ? "#0D1526" : "#F8FAFF",
+            background: isDark ? "#0C1323" : "#F8FAFF",
           }}
         >
           <div className="flex items-center gap-2 min-w-0">
@@ -106,8 +103,8 @@ function MediaRenderer({ post, isDark }) {
     <div
       className="mx-5 my-3 flex items-center gap-3 p-4 rounded-xl"
       style={{
-        background: isDark ? "#0D1526" : "#F8FAFF",
-        border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
+        background: isDark ? "#0C1323" : "#F8FAFF",
+        border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)"}`,
       }}
     >
       <File size={24} style={{ color: "#A78BFA" }} />
@@ -146,8 +143,8 @@ function TextFilePreview({ url, filename, isDark }) {
     <div
       className="mx-5 my-3 rounded-xl overflow-hidden"
       style={{
-        border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
-        background: isDark ? "#0D1526" : "#F8FAFF",
+        border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)"}`,
+        background: isDark ? "#0C1323" : "#F8FAFF",
       }}
     >
       <div
@@ -182,9 +179,6 @@ function TextFilePreview({ url, filename, isDark }) {
     </div>
   );
 }
-/* ─────────────────────────────────────────────────────────
-   Individual Post Card
-───────────────────────────────────────────────────────── */
 const PostCard = ({ post, user, isDark }) => {
   const [likes, setLikes] = useState(post.likes || []);
   const [comments, setComments] = useState(post.comments || []);
@@ -212,8 +206,8 @@ const PostCard = ({ post, user, isDark }) => {
 
   const currentUserId = user?.id || user?._id;
   const isLiked = likes.some((id) => id?.toString() === currentUserId?.toString());
-  const surface  = isDark ? "#0D1526" : "#FFFFFF";
-  const border   = isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)";
+  const surface  = isDark ? "#0C1323" : "#FFFFFF";
+  const border   = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.07)";
   const textPrimary   = isDark ? "#E8EFF8" : "#0F172A";
   const textSecondary = isDark ? "#6B7FA3" : "#64748B";
   const divider       = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
@@ -464,9 +458,6 @@ const PostCard = ({ post, user, isDark }) => {
     </article>
   );
 };
-/* ─────────────────────────────────────────────────────────
-   Feed Container
-───────────────────────────────────────────────────────── */
 export default function Feed({ newPostTrigger }) {
   const { user } = useSelector((state) => state.auth);
   const { isDark } = useSelector((state) => state.theme);
@@ -551,8 +542,8 @@ export default function Feed({ newPostTrigger }) {
             key={i}
             className="rounded-2xl p-5 animate-pulse"
             style={{
-              background: isDark ? "#0D1526" : "#FFFFFF",
-              border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}`,
+              background: isDark ? "#0C1323" : "#FFFFFF",
+              border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.07)"}`,
             }}
           >
             <div className="flex gap-3 mb-4">
@@ -581,7 +572,7 @@ export default function Feed({ newPostTrigger }) {
       <div
         className="rounded-2xl p-12 text-center"
         style={{
-          background: isDark ? "#0D1526" : "#FFFFFF",
+          background: isDark ? "#0C1323" : "#FFFFFF",
           border: `1px dashed ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
         }}
       >

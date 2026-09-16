@@ -104,7 +104,7 @@ export const getGroupById = asyncHandler(async (req, res, next) => {
     .populate('admins', 'name profilePicture')
     .populate('members', 'name profilePicture instituteName');
 
-  if (!group) return next(new AppError('Group not found', 404));
+  if (!group) throw new AppError();
 
   await CacheService.set(`group:${id}`, group, TTL.group);
   res.status(200).json(group);
@@ -114,14 +114,14 @@ export const requestToJoinGroup = asyncHandler(async (req, res, next) => {
   const requesterId = req.user._id;
 
   const group = await Group.findById(groupId);
-  if (!group) return next(new AppError('Group not found', 404));
+  if (!group) throw new AppError();
 
   if (group.members.includes(requesterId) || group.admins.includes(requesterId)) {
-    return next(new AppError('You are already a member of this group', 400));
+    throw new AppError();
   }
 
   if (group.joinRequests?.includes(requesterId)) {
-    return next(new AppError('Request is already pending', 400));
+    throw new AppError();
   }
 
   group.joinRequests.push(requesterId);
@@ -150,15 +150,15 @@ export const handleJoinRequest = asyncHandler(async (req, res, next) => {
   const adminId = req.user._id;
 
   const group = await Group.findById(groupId);
-  if (!group) return next(new AppError('Group not found', 404));
-  if (!group.admins.includes(adminId)) return next(new AppError('Only admins can manage requests', 403));
+  if (!group) throw new AppError();
+  if (!group.admins.includes(adminId)) throw new AppError();
   if (!group.joinRequests.includes(requesterId)) {
-    return next(new AppError('Request not found or already handled', 400));
+    throw new AppError();
   }
 
   if (action === 'accept') {
     if (group.members.length >= (group.memberLimit || 50)) {
-      return next(new AppError('Group is full', 400));
+      throw new AppError();
     }
     if (!group.members.includes(requesterId)) group.members.push(requesterId);
 
@@ -190,8 +190,8 @@ export const getGroupRequests = asyncHandler(async (req, res, next) => {
   if (cached) return res.status(200).json(cached);
 
   const group = await Group.findById(groupId);
-  if (!group) return next(new AppError('Group not found', 404));
-  if (!group.admins.includes(userId)) return next(new AppError('Access denied. Admins only.', 403));
+  if (!group) throw new AppError();
+  if (!group.admins.includes(userId)) throw new AppError();
 
   await group.populate({ path: 'joinRequests', select: 'name profilePicture instituteName headline' });
 
@@ -203,14 +203,14 @@ export const joinGroup = asyncHandler(async (req, res, next) => {
   const userId = req.user._id;
 
   const group = await Group.findById(groupId);
-  if (!group) return next(new AppError('Group not found', 404));
+  if (!group) throw new AppError();
 
   if (group.members.includes(userId)) {
-    return next(new AppError('Already a member', 400));
+    throw new AppError();
   }
 
   if (group.members.length >= (group.memberLimit || 50)) {
-    return next(new AppError('Group is full', 400));
+    throw new AppError();
   }
 
   group.members.push(userId);
@@ -253,9 +253,9 @@ export const deleteGroup = asyncHandler(async (req, res, next) => {
   const userId = req.user._id;
 
   const group = await Group.findById(groupId);
-  if (!group) return next(new AppError('Group not found', 404));
+  if (!group) throw new AppError();
   if (!group.admins.includes(userId)) {
-    return next(new AppError('Only admins can delete the group', 403));
+    throw new AppError();
   }
 
   await Message.deleteMany({ group: groupId });

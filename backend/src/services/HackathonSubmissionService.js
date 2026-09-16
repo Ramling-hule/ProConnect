@@ -58,9 +58,41 @@ class HackathonSubmissionService {
         type: 'hackathon_submission',
         message: `Team "${team.name}" submitted for "${hackathon.title}"`,
         link: `/hackathons/${hackathon.slug}/dashboard`,
-        relatedId: submission._id,
+        relatedId: hackathon._id,
       }, io);
     }
+
+    return submission;
+  }
+
+  async scoreSubmission(hackathonId, teamId, judgeId, scoreData) {
+    const hackathon = await Hackathon.findById(hackathonId);
+    if (!hackathon) throw new AppError('Hackathon not found', 404);
+
+    const isJudge = hackathon.judges && hackathon.judges.some(j => j.toString() === judgeId.toString());
+    if (!isJudge) {
+      throw new AppError('Only assigned judges can score submissions', 403);
+    }
+
+    const submission = await HackathonSubmission.findOne({ hackathon: hackathonId, team: teamId });
+    if (!submission) {
+      throw new AppError('Submission not found', 404);
+    }
+    const existingScoreIdx = submission.scores.findIndex(s => s.judge.toString() === judgeId.toString());
+    if (existingScoreIdx >= 0) {
+      submission.scores[existingScoreIdx].score = scoreData.score;
+      submission.scores[existingScoreIdx].feedback = scoreData.feedback;
+      submission.scores[existingScoreIdx].scoredAt = new Date();
+    } else {
+      submission.scores.push({
+        judge: judgeId,
+        score: scoreData.score,
+        feedback: scoreData.feedback,
+        scoredAt: new Date()
+      });
+    }
+    submission.totalScore = submission.scores.reduce((sum, s) => sum + (s.score || 0), 0);
+    await submission.save();
 
     return submission;
   }
@@ -85,6 +117,54 @@ class HackathonSubmissionService {
       { hackathon: hackathonId },
       { $set: { isLocked: true } },
     );
+  }
+
+  async finalizeResults(hackathonId, organizerId, io) {
+    const hackathon = await Hackathon.findById(hackathonId);
+    if (!hackathon) throw new AppError('Hackathon not found', 404);
+    if (hackathon.organizer.toString() !== organizerId.toString()) {
+      throw new AppError('Only the organizer can finalize results', 403);
+    }
+
+    const submissions = await HackathonSubmission.find({ hackathon: hackathonId })
+      .sort({ totalScore: -1 })
+      .exec();
+
+    const topCount = 3;
+
+    for (let i = 0; i < submissions.length; i++) {
+      const sub = submissions[i];
+      sub.isLocked = true;
+      sub.rank = i + 1;
+      
+      if (sub.rank <= topCount) {
+        sub.isWinner = true;
+        if (hackathon.prizes && hackathon.prizes.length >= sub.rank) {
+          sub.prizeWon = hackathon.prizes[sub.rank - 1].title;
+        }
+      }
+
+      await sub.save();
+      if (sub.isWinner) {
+        const team = await HackathonTeam.findById(sub.team);
+        if (team) {
+          team.members.forEach(m => {
+            notificationManager.notify({
+              recipientId: m.user,
+              type: 'hackathon_result',
+              message: `Congratulations! Your team "${team.name}" ranked #${sub.rank} in "${hackathon.title}"!`,
+              link: `/hackathons/${hackathon.slug}/leaderboard`,
+              relatedId: hackathon._id,
+            }, io).catch(console.error);
+          });
+        }
+      }
+    }
+
+    hackathon.status = 'completed';
+    await hackathon.save();
+
+    return { success: true, finalizedCount: submissions.length };
   }
 }
 

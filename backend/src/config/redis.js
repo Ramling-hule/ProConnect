@@ -7,7 +7,7 @@ const redisClient = createClient({
         reconnectStrategy: (retries) => {
             if (retries >= 3) {
                 console.warn('⚠️  Redis: giving up after 3 retries. Sessions will use memory store.');
-                return false; // stop retrying — prevents infinite loop
+                return false;
             }
             return Math.min(retries * 500, 2000);
         }

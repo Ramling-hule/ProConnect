@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  isDark: false, // Always start false to match server (prevents hydration errors)
+  isDark: false,
 };
 
 const themeSlice = createSlice({

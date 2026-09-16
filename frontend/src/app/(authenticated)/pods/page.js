@@ -45,6 +45,14 @@ export default function PodsDashboardPage() {
         <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
           Join small, focused groups led by industry experts to master specific skills.
         </p>
+        <div className="flex flex-wrap gap-3 mt-4">
+          <Link href="/mentor/pods" className="px-4 py-2 bg-purple-100 text-purple-700 rounded-xl font-bold hover:bg-purple-200 transition-colors">
+            My Mentor Pods
+          </Link>
+          <Link href="/admin/pods" className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+            Admin Pods
+          </Link>
+        </div>
       </div>
 
       {loading ? (

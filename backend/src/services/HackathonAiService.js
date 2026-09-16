@@ -5,6 +5,9 @@ import CacheKeys from '../utils/CacheKeys.js';
 import HackathonPromptBuilder from '../utils/HackathonPromptBuilder.js';
 import HackathonRepository from '../repositories/HackathonRepository.js';
 import HackathonTeam from '../models/HackathonTeam.js';
+import User from '../models/User.js';
+import HackathonTeammateMatchingService from './HackathonTeammateMatchingService.js';
+
 class HackathonAiService {
 
   async _callAi(prompt, cacheKey, cacheTtl = 600) {
@@ -25,8 +28,35 @@ class HackathonAiService {
 
   async getTeamSuggestions(hackathonId, userId) {
     const hackathon = await this._getHackathon(hackathonId);
-    const prompt    = HackathonPromptBuilder.teamSuggestions(hackathon);
-    return this._callAi(prompt, CacheKeys.aiTeamSuggestions(hackathonId, userId));
+    const team = await HackathonTeam.findOne({ hackathon: hackathonId, 'members.user': userId })
+      .populate('members.user', 'skills').lean();
+    
+    let currentSkills = [];
+    if (team) {
+      currentSkills = [...new Set(team.members.flatMap(m => m.user?.skills || []))];
+    } else {
+      const user = await User.findById(userId).lean();
+      currentSkills = user?.skills || [];
+    }
+
+    const prompt = HackathonPromptBuilder.teamSuggestions(hackathon, currentSkills);
+    const aiResponse = await this._callAi(prompt, CacheKeys.aiTeamSuggestions(hackathonId, userId), 300);
+    const missingSkills = aiResponse.missingSkills || [];
+
+    let suggestedTeammates = [];
+    if (missingSkills.length > 0) {
+      const matches = await HackathonTeammateMatchingService.searchTeammates(
+        hackathonId, 
+        userId, 
+        { skills: missingSkills, excludeTeamed: true, limit: 5 }
+      );
+      suggestedTeammates = matches.candidates || [];
+    }
+
+    return {
+      inspiration: aiResponse.gapDescription,
+      suggestedTeammates
+    };
   }
 
   async getSkillGapAnalysis(hackathonId, teamId) {

@@ -2,8 +2,11 @@ import AppError from '../utils/AppError.js';
 import HackathonTeam from '../models/HackathonTeam.js';
 import Hackathon from '../models/Hackathon.js';
 import Group from '../models/Group.js';
+import User from '../models/User.js';
+import HackathonRegistrationService from './HackathonRegistrationService.js';
 import notificationManager from './notificationService.js';
 import { nanoid } from '../utils/slugify.js';
+
 class TeamChatRoomFactory {
   async create(teamName, hackathonTitle, captainId) {
     return Group.create({
@@ -36,6 +39,7 @@ class TeamChatRoomFactory {
 }
 
 const chatRoomFactory = new TeamChatRoomFactory();
+
 class HackathonTeamService {
 
   async createTeam(hackathonId, captainId, { name, role, rolesNeeded, techStack }) {
@@ -46,11 +50,16 @@ class HackathonTeamService {
       throw new AppError('Registration deadline has passed, cannot create team', 400);
     }
 
+    const captainUser = await User.findById(captainId);
+    if (!captainUser) throw new AppError('User not found', 404);
+    HackathonRegistrationService._assertEligibility(hackathon, captainUser);
+
     const existingTeam = await HackathonTeam.findOne({
       hackathon:     hackathonId,
       'members.user': captainId,
     });
     if (existingTeam) throw new AppError('You are already in a team for this hackathon', 409);
+    
     const group = await chatRoomFactory.create(name, hackathon.title, captainId);
 
     const team = await HackathonTeam.create({
@@ -77,7 +86,14 @@ class HackathonTeamService {
     const alreadyInvited = team.invitations.find(
       inv => inv.user.toString() === inviteeId.toString() && inv.status === 'pending'
     );
-    if (alreadyInvited) throw new AppError('User already has a pending invitation', 409);
+    if (alreadyInvited) throw new AppError('User already has a pending invitation to this team', 409);
+    const pendingInvitesCount = await HackathonTeam.countDocuments({
+      hackathon: hackathon._id,
+      invitations: { $elemMatch: { user: inviteeId, status: 'pending' } }
+    });
+    if (pendingInvitesCount >= 5) {
+      throw new AppError('This user has too many pending invitations across this hackathon', 429);
+    }
 
     team.invitations.push({
       user:      inviteeId,
@@ -116,23 +132,41 @@ class HackathonTeamService {
       _id:           { $ne: teamId },
     });
     if (inAnotherTeam) throw new AppError('You are already in another team for this hackathon', 409);
+    const updatedTeam = await HackathonTeam.findOneAndUpdate(
+      {
+        _id: teamId,
+        $expr: { $lt: [{ $size: "$members" }, hackathon.maxTeamSize] }
+      },
+      {
+        $push: { members: { user: userId, role: '' } },
+        $set: { "invitations.$[inv].status": "accepted" }
+      },
+      {
+        arrayFilters: [{ "inv.user": userId, "inv.status": "pending" }],
+        new: true
+      }
+    );
 
-    invite.status = 'accepted';
-    team.members.push({ user: userId, role: '' });
-    if (team.members.length >= hackathon.maxTeamSize) team.isLookingForMembers = false;
-    await chatRoomFactory.addMember(team.groupId, userId);
-    await team.save();
+    if (!updatedTeam) {
+      throw new AppError('Team is full or invitation is no longer valid', 400);
+    }
+
+    if (updatedTeam.members.length >= hackathon.maxTeamSize) {
+      await HackathonTeam.updateOne({ _id: teamId }, { isLookingForMembers: false });
+    }
+
+    await chatRoomFactory.addMember(updatedTeam.groupId, userId);
 
     await notificationManager.notify({
-      recipientId: team.captain,
+      recipientId: updatedTeam.captain,
       senderId:    userId,
       type:        'team_joined',
-      message:     `A member has joined your team "${team.name}"`,
+      message:     `A member has joined your team "${updatedTeam.name}"`,
       link:        `/hackathons/${hackathon.slug}/team/${teamId}`,
-      relatedId:   team._id,
+      relatedId:   updatedTeam._id,
     }, io);
 
-    return team;
+    return updatedTeam;
   }
 
   async rejectInvite(teamId, userId) {

@@ -12,8 +12,8 @@ export const apiLimiter = rateLimit({
 });
 
 export const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests
+  windowMs: 15 * 60 * 1000,
+  max: 5,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -24,8 +24,8 @@ export const loginLimiter = rateLimit({
 });
 
 export const registrationLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // 10 requests
+  windowMs: 60 * 60 * 1000,
+  max: 10,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -35,8 +35,8 @@ export const registrationLimiter = rateLimit({
   },
 });
 export const publicApiLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 30,             // 30 req/min per IP — half of the authenticated limit
+  windowMs: 60 * 1000,
+  max: 30,
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => {

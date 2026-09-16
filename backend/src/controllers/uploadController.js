@@ -4,14 +4,14 @@ import AppError from '../utils/AppError.js';
 
 export const uploadFile = asyncHandler(async (req, res, next) => {
     if (!req.file) {
-        return next(new AppError("No file provided", 400));
+        throw new AppError();
     }
 
     const uploadToCloudinary = (buffer) => {
         return new Promise((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
                 {
-                    resource_type: "auto", // Auto-detect: image, video, or raw (pdf, doc)
+                    resource_type: "auto",
                     folder: "uni_connect_chat_files",
                 },
                 (error, result) => {

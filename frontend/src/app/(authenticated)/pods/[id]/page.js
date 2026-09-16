@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Target, Clock, AlertCircle, Users, ArrowLeft, Loader, MessageSquare, CheckSquare, Calendar } from 'lucide-react';
 import JoinPodButton from './JoinPodButton';
+import { toast } from 'react-hot-toast';
 import PodChat from '@/Components/Pods/PodChat';
 import PodTasks from '@/Components/Pods/PodTasks';
 import PodMeetings from '@/Components/Pods/PodMeetings';
@@ -70,6 +71,20 @@ export default function PodDetailPage() {
   const isFull = memberCount >= pod.maxSize;
   const isMentor = user?._id === pod.mentorId?._id;
   const isMember = members.some(m => m.userId?._id === user?._id) || isMentor;
+
+  const handleMentorAction = async (action) => {
+    try {
+      const res = await fetch(`${API_URL}/api/pods/${id}/${action}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      const json = await res.json();
+      if (res.ok) {
+        toast.success(`Pod ${action.split('/')[0]} successful`);
+        window.location.reload();
+      } else toast.error(json.message || `Failed to ${action}`);
+    } catch { toast.error(`Error performing action: ${action}`); }
+  };
 
   return (
     <div className="pb-10 max-w-5xl mx-auto">
@@ -141,6 +156,21 @@ export default function PodDetailPage() {
             </div>
           </div>
         </div>
+
+        {isMentor && (
+          <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 relative z-10 flex flex-wrap gap-3">
+            <h3 className="w-full font-bold text-slate-900 dark:text-white mb-2">Mentor Actions</h3>
+            {pod.status !== 'ACTIVE' && pod.status !== 'COMPLETED' && (
+              <button onClick={() => handleMentorAction('start')} className="px-4 py-2 bg-green-100 text-green-700 hover:bg-green-200 font-bold rounded-xl text-sm transition-colors">Start Pod</button>
+            )}
+            {pod.status === 'ACTIVE' && (
+              <button onClick={() => handleMentorAction('complete')} className="px-4 py-2 bg-purple-100 text-purple-700 hover:bg-purple-200 font-bold rounded-xl text-sm transition-colors">Complete Pod</button>
+            )}
+            <button onClick={() => handleMentorAction('ai/suggest-members')} className="px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 font-bold rounded-xl text-sm transition-colors flex items-center gap-2">
+              <Users size={16} /> AI Suggest Members
+            </button>
+          </div>
+        )}
       </div>
 
       {isMember && (
@@ -185,7 +215,7 @@ export default function PodDetailPage() {
                   {members.map((m, idx) => (
                     <div key={idx} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-700/50">
                       <img 
-                        src={m.userId?.profilePicture || '/default-avatar.png'} 
+                        src={m.userId?.profilePicture || '/default-avatar.svg'} 
                         alt={m.userId?.name} 
                         className="w-10 h-10 rounded-full object-cover"
                       />
@@ -210,7 +240,7 @@ export default function PodDetailPage() {
               <Link href={`/mentors/${pod.mentorId?.username}`} className="block group">
                 <div className="flex items-center gap-4 mb-3">
                   <img 
-                    src={pod.mentorId?.profilePicture || '/default-avatar.png'} 
+                    src={pod.mentorId?.profilePicture || '/default-avatar.svg'} 
                     alt={pod.mentorId?.name} 
                     className="w-14 h-14 rounded-full object-cover border-2 border-purple-100"
                   />

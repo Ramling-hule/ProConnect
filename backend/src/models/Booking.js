@@ -13,16 +13,25 @@ const bookingSchema = new mongoose.Schema(
     
     status: {
       type: String,
-      enum: ["Pending", "Payment Pending", "Confirmed", "Cancelled", "Completed", "Refunded", "No Show", "Expired"],
-      default: "Payment Pending"
+      enum: ["Pending", "Payment Pending", "Confirmed", "Cancelled", "Completed", "Refunded", "No Show", "Expired", "PENDING_PAYMENT", "BOOKED", "CANCELLED"],
+      default: "PENDING_PAYMENT"
     },
     
-    meetingLink: { type: String }, // e.g., Jitsi Meet or Google Meet URL
+    meetingLink: { type: String },
     
     amount: { type: Number, required: true },
     platformFee: { type: Number, default: 0 },
+    topic: { type: String, required: true, default: "General Discussion" },
+    description: { type: String, required: true, default: "No description provided." },
+    preferredOutcome: { type: String },
+    additionalInfo: { type: String },
+    attachments: [{
+      fileName: { type: String },
+      fileUrl: { type: String },
+      fileType: { type: String }
+    }],
     
-    notes: { type: String }, // User's questions or context before meeting
+    notes: { type: String },
     cancellationReason: { type: String }
   },
   { timestamps: true }

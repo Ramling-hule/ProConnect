@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 
 const slotSchema = new mongoose.Schema({
-  start: { type: String, required: true }, // format "HH:MM"
-  end: { type: String, required: true }    // format "HH:MM"
+  start: { type: String, required: true },
+  end: { type: String, required: true }
 }, { _id: false });
 
 const availabilitySchema = new mongoose.Schema(
@@ -20,8 +20,8 @@ const availabilitySchema = new mongoose.Schema(
     },
     exceptions: [{ type: Date }],
     
-    bufferTime: { type: Number, default: 10 }, // Minutes between sessions
-    advanceNotice: { type: Number, default: 24 } // Minimum hours required to book
+    bufferTime: { type: Number, default: 10 },
+    advanceNotice: { type: Number, default: 24 }
   },
   { timestamps: true }
 );

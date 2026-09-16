@@ -60,6 +60,27 @@ class PrizePoolFilter extends FilterStrategy {
     query['prizes.0.amount'] = { $gte: Number(minPrize) };
   }
 }
+class StatusFilter extends FilterStrategy {
+  applies({ status }) { return Boolean(status); }
+  apply(query, { status }) {
+    query.status = status;
+  }
+}
+
+class DateRangeFilter extends FilterStrategy {
+  applies({ startDate, endDate }) { return Boolean(startDate) || Boolean(endDate); }
+  apply(query, { startDate, endDate }) {
+    if (startDate) {
+      query['timeline.hackathonStart'] = query['timeline.hackathonStart'] || {};
+      query['timeline.hackathonStart'].$gte = new Date(startDate);
+    }
+    if (endDate) {
+      query['timeline.hackathonEnd'] = query['timeline.hackathonEnd'] || {};
+      query['timeline.hackathonEnd'].$lte = new Date(endDate);
+    }
+  }
+}
+
 class HackathonQueryBuilder {
   constructor() {
     this.strategies = [
@@ -71,6 +92,8 @@ class HackathonQueryBuilder {
       new RegistrationOpenFilter(),
       new SearchFilter(),
       new PrizePoolFilter(),
+      new StatusFilter(),
+      new DateRangeFilter(),
     ];
   }
   build(params = {}) {
@@ -90,10 +113,12 @@ class HackathonQueryBuilder {
   }
   buildSort(sortKey = 'createdAt') {
     const sortMap = {
-      createdAt: { createdAt: -1 },
-      prizePool:  { 'prizes.0.amount': -1 },
-      deadline:   { 'timeline.registrationClose': 1 },
-      popular:    { registrationCount: -1 },
+      createdAt:    { createdAt: -1 },
+      prizePool:    { 'prizes.0.amount': -1 },
+      deadline:     { 'timeline.registrationClose': 1 },
+      closingSoon:  { 'timeline.registrationClose': 1 },
+      popular:      { registrationCount: -1 },
+      featured:     { isFeatured: -1, registrationCount: -1 },
     };
     return sortMap[sortKey] || { createdAt: -1 };
   }
